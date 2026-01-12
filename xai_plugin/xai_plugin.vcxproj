@@ -83,6 +83,7 @@
     <ClCompile Include="payload.cpp" />
     <ClCompile Include="prx.cpp" />
     <ClCompile Include="qa.cpp" />
+    <ClCompile Include="qcfw.cpp" />
     <ClCompile Include="rebug.cpp" />
     <ClCompile Include="savegames.cpp" />
   </ItemGroup>
@@ -107,6 +108,7 @@
     <ClInclude Include="payload.h" />
     <ClInclude Include="ps3_savedata_plugin.h" />
     <ClInclude Include="qa.h" />
+    <ClInclude Include="qcfw.h" />
     <ClInclude Include="rebug.h" />
     <ClInclude Include="rebugtoolbox.h" />
     <ClInclude Include="recording_settings.h" />

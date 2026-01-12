@@ -297,6 +297,8 @@ error:
 	return 1;
 }
 
+#if 0
+
 int setup_otherOS()
 {
 	FILE *file_md5;
@@ -387,3 +389,5 @@ int setup_otherOS()
 
 	return 0;
 }
+
+#endif

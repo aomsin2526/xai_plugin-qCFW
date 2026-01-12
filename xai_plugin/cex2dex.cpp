@@ -16,6 +16,7 @@
 #include "qa.h"
 #include "erk.h"
 #include "cex2dex.h"
+#include "qcfw.h"
 
 static wchar_t wchar_string[120]; // Global variable for swprintf
 
@@ -1208,6 +1209,9 @@ void swapKernel()
 	CellFsStat statinfo;
 	close_xml_list();
 
+	if (!is_qcfw())
+		return;
+
 	// HEN
 	if(!is_hen())
 	{
@@ -1242,7 +1246,7 @@ void swapKernel()
 
 	int targetID = getTargetID(1);
 
-	if(targetID == 0x82)
+	if(targetID == 0x82 || 1)
 	{
 		showMessage("msg_swap_kernel_wait", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
