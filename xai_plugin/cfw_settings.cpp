@@ -667,7 +667,7 @@ void changeAccountID(int mode, int force)
 			showMessage("msg_accountid_set_fake", (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 
 		wait(3);
-		rebootXMB(SYS_HARD_REBOOT);
+		rebootXMB(SYS_SOFT_REBOOT);
 	}
 	else if(ret == 1)		
 		showMessage("msg_accountid_not_empty", (char*)XAI_PLUGIN, (char*)TEX_WARNING);
@@ -2519,7 +2519,7 @@ void recovery_mode()
 		ret = set_recovery_mode_flag(0x00);
 		showMessage((ret == 0) ? "msg_recovery_mode_enabled" : "msg_write_eprom_failed", (char *)XAI_PLUGIN, (ret == 0) ? (char *)TEX_SUCCESS : (char *)TEX_ERROR);
 		wait(3);
-		rebootXMB(SYS_HARD_REBOOT);
+		rebootXMB(SYS_SOFT_REBOOT);
 	}
 
 	if(data == 0x00)

@@ -200,7 +200,7 @@ static void plugin_thread(uint64_t arg)
 		if(toggle_cobra_version() == CELL_OK)
 		{
 			wait(2);
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 		}
 	}
 	else if(strcmp(action_thread, "cobra_mode") == 0)
@@ -208,7 +208,7 @@ static void plugin_thread(uint64_t arg)
 		if(toggle_cobra() == CELL_OK)
 		{
 			wait(2);
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 		}
 	}
 	else if(strcmp(action_thread, "toggle_plugins") == 0)
@@ -720,12 +720,12 @@ static void plugin_thread(uint64_t arg)
 	//else if(strcmp(action_thread, "rsod_fix") == 0)
 	//{		
 	//	if(rsod_fix() == true)
-	//		rebootXMB(SYS_HARD_REBOOT);
+	//		rebootXMB(SYS_SOFT_REBOOT);
 	//}	
 	//else if(strcmp(action_thread, "service_mode") == 0)
 	//{
 	//	if(!service_mode())
-	//		rebootXMB(SYS_HARD_REBOOT);
+	//		rebootXMB(SYS_SOFT_REBOOT);
 	//}	
 	//else if(strcmp(action_thread, "remarry_bd") == 0)			
 	//	remarry_bd();	
@@ -885,7 +885,7 @@ static void plugin_thread(uint64_t arg)
 	else if(strcmp(action_thread, "enable_hvdbg") == 0)
 	{
 		if(enable_hvdbg() == true)
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 	}
 	else if(strcmp(action_thread, "usb_firm_loader") == 0)	
 		usb_firm_loader();*/
