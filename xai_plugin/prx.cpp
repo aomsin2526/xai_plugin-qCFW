@@ -18,6 +18,7 @@
 #include "rebugtoolbox.h"
 #include "erk.h"
 #include "overclock.h"
+#include "qcfw.h"
 
 #define XAI_VERSION "XAI Version 1.24"
 
@@ -625,14 +626,14 @@ static void plugin_thread(uint64_t arg)
 		setLed("special2");
 
 	// QA options
-	else if(strcmp(action_thread, "check_qa") == 0)
-		read_qa_flag();
-	else if(strcmp(action_thread, "enable_qa_normal") == 0)
-		set_qa(BASIC);
-	else if(strcmp(action_thread, "enable_qa_advanced") == 0)
-		set_qa(FULL);
-	else if(strcmp(action_thread, "disable_qa") == 0)
-		set_qa(DISABLE);
+	//else if(strcmp(action_thread, "check_qa") == 0)
+	//	read_qa_flag();
+	//else if(strcmp(action_thread, "enable_qa_normal") == 0)
+	//	set_qa(BASIC);
+	//else if(strcmp(action_thread, "enable_qa_advanced") == 0)
+	//	set_qa(FULL);
+	//else if(strcmp(action_thread, "disable_qa") == 0)
+	//	set_qa(DISABLE);
 
 	// xRegistry options	
 	else if(strcmp(action_thread, "backup_registry") == 0)	
@@ -716,20 +717,20 @@ static void plugin_thread(uint64_t arg)
 		install_toolbox();*/
 
 	// Advanced Tools options
-	else if(strcmp(action_thread, "rsod_fix") == 0)
-	{		
-		if(rsod_fix() == true)
-			rebootXMB(SYS_HARD_REBOOT);
-	}	
-	else if(strcmp(action_thread, "service_mode") == 0)
-	{
-		if(!service_mode())
-			rebootXMB(SYS_HARD_REBOOT);
-	}	
+	//else if(strcmp(action_thread, "rsod_fix") == 0)
+	//{		
+	//	if(rsod_fix() == true)
+	//		rebootXMB(SYS_HARD_REBOOT);
+	//}	
+	//else if(strcmp(action_thread, "service_mode") == 0)
+	//{
+	//	if(!service_mode())
+	//		rebootXMB(SYS_HARD_REBOOT);
+	//}	
 	//else if(strcmp(action_thread, "remarry_bd") == 0)			
 	//	remarry_bd();	
-	else if(strcmp(action_thread, "check_ros_bank") == 0)			
-		check_ros_bank();	
+	//else if(strcmp(action_thread, "check_ros_bank") == 0)			
+	//	check_ros_bank();	
 	//else if(strcmp(action_thread, "check_8th_spe") == 0)			
 	//	check_8th_spe();	
 	//else if(strcmp(action_thread, "toggle_8th_spe") == 0)			
@@ -756,10 +757,10 @@ static void plugin_thread(uint64_t arg)
 		export_rap();
 	else if(strcmp(action_thread, "dump_ids") == 0)	
 		dump_ids();	
-	else if(strcmp(action_thread, "dump_erk") == 0)	
-		dumpERK(ERK);		
-	else if(strcmp(action_thread, "dump_metldr") == 0)	
-		dumpERK(METLDR);	
+	//else if(strcmp(action_thread, "dump_erk") == 0)	
+	//	dumpERK(ERK);		
+	//else if(strcmp(action_thread, "dump_metldr") == 0)	
+	//	dumpERK(METLDR);	
 	else if(strcmp(action_thread, "dump_lv2") == 0)	
 		dump_lv(LV2);		
 	else if(strcmp(action_thread, "dump_lv1") == 0)	
@@ -889,6 +890,11 @@ static void plugin_thread(uint64_t arg)
 	else if(strcmp(action_thread, "usb_firm_loader") == 0)	
 		usb_firm_loader();*/
 	
+	else if (strcmp(action_thread, "qcfw_install_otheros") == 0)
+		qcfw_install_otheros();
+	else if (strcmp(action_thread, "qcfw_boot_otheros") == 0)
+		qcfw_boot_otheros();
+
 	sys_ppu_thread_exit(0);
 }
 
