@@ -895,7 +895,7 @@ static void plugin_thread(uint64_t arg)
 	else if (strcmp(action_thread, "qcfw_boot_otheros") == 0)
 		qcfw_boot_otheros();
 
-	sys_ppu_thread_exit(0);
+	//sys_ppu_thread_exit(0);
 }
 
 void xai_plugin_interface_action::xai_plugin_action(const char * action)
@@ -904,5 +904,6 @@ void xai_plugin_interface_action::xai_plugin_action(const char * action)
 
 	log_function("xai_plugin", __VIEW__, __FUNCTION__, "(%s)\n", action);
 	action_thread = action;
-	sys_ppu_thread_create(&thread_id, plugin_thread, 0, 3000, 0x4000, 0, "xai_thread");
+	//sys_ppu_thread_create(&thread_id, plugin_thread, 0, 3000, 0x4000, 0, "xai_thread");
+	plugin_thread(0);
 }
