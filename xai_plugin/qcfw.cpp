@@ -38,6 +38,8 @@ void qcfw_install_otheros()
 
 	cellFsUnlink("/dev_blind/sys/dtbImage.ps3.zfself");
 
+	PrintString(L"Copying...", XAI_PLUGIN, TEX_INFO2);
+
 	if (filecopy("/dev_usb000/dtbImage.ps3.zfself", "/dev_blind/sys/dtbImage.ps3.zfself"))
 	{
 		cellFsUnlink("/dev_blind/sys/dtbImage.ps3.zfself");
