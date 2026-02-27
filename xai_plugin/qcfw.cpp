@@ -249,6 +249,8 @@ bool qcfw_save_to_file(const char* fName, const void* data, uint32_t dataSize)
 	if (cellFsOpen(fName, CELL_FS_O_CREAT | CELL_FS_O_TRUNC | CELL_FS_O_RDWR, &fd, 0, 0) != CELL_FS_SUCCEEDED)
 		return false;
 
+	cellFsChmod(fName, 0777);
+
 	uint64_t writeSuccessSize = 0;
 	if (dataSize > 0)
 		cellFsWrite(fd, data, dataSize, &writeSuccessSize);
