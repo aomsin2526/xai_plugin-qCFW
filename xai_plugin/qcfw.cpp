@@ -1,3 +1,4 @@
+#include <string.h>
 #include <cell/fs/cell_fs_file_api.h>
 
 #include "functions.h"
@@ -177,4 +178,157 @@ void qcfw_boot_otheros()
 	}
 
 	rebootXMB(SYS_LV2_REBOOT);
+}
+
+bool qcfw_sc_read_hdd_key_dumper_flag(uint8_t* outValue)
+{
+	return update_mgr_read_eeprom(0x3003, outValue) == 0;
+}
+
+bool qcfw_sc_write_hdd_key_dumper_flag(uint8_t value)
+{
+	return update_mgr_write_eeprom(0x3003, value) == 0;
+}
+
+bool qcfw_sc_read_ata_data_key(uint8_t* outValue) // [32]
+{
+	for (uint32_t i = 0; i < 32; ++i)
+	{
+		if (update_mgr_read_eeprom((0x3020 + i), &outValue[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+
+bool qcfw_sc_read_ata_tweak_key(uint8_t* outValue) // [32]
+{
+	for (uint32_t i = 0; i < 32; ++i)
+	{
+		if (update_mgr_read_eeprom((0x3040 + i), &outValue[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+
+bool qcfw_sc_read_encdec_data_key(uint8_t* outValue) // [32]
+{
+	for (uint32_t i = 0; i < 32; ++i)
+	{
+		if (update_mgr_read_eeprom((0x3060 + i), &outValue[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+
+bool qcfw_sc_read_encdec_tweak_key(uint8_t* outValue) // [32]
+{
+	for (uint32_t i = 0; i < 32; ++i)
+	{
+		if (update_mgr_read_eeprom((0x3080 + i), &outValue[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+
+void qcfw_dump_hdd_key()
+{
+	if (!qcfw_sc_write_hdd_key_dumper_flag(0x1))
+		return;
+
+	rebootXMB(SYS_SOFT_REBOOT);
+}
+
+bool qcfw_save_to_file(const char* fName, const void* data, uint32_t dataSize)
+{
+	int32_t fd;
+
+	if (cellFsOpen(fName, CELL_FS_O_CREAT | CELL_FS_O_TRUNC | CELL_FS_O_RDWR, &fd, 0, 0) != CELL_FS_SUCCEEDED)
+		return false;
+
+	uint64_t writeSuccessSize = 0;
+	if (dataSize > 0)
+		cellFsWrite(fd, data, dataSize, &writeSuccessSize);
+
+	cellFsClose(fd);
+	return (writeSuccessSize == dataSize);
+}
+
+void qcfw_save_hdd_key_to_usb()
+{
+	uint8_t hdd_key_dumper_flag = 0xff;
+
+	if (!qcfw_sc_read_hdd_key_dumper_flag(&hdd_key_dumper_flag))
+		return;
+
+	if (hdd_key_dumper_flag != 0xfe)
+	{
+		PrintString(L"Dump first!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	uint8_t ata_data_key[32];
+	if (!qcfw_sc_read_ata_data_key(ata_data_key))
+		return;
+
+	uint8_t ata_tweak_key[32];
+	if (!qcfw_sc_read_ata_tweak_key(ata_tweak_key))
+		return;
+
+	uint8_t encdec_data_key[32];
+	if (!qcfw_sc_read_encdec_data_key(encdec_data_key))
+		return;
+
+	uint8_t encdec_tweak_key[32];
+	if (!qcfw_sc_read_encdec_tweak_key(encdec_tweak_key))
+		return;
+
+	uint8_t atakey_bin[32];
+	memcpy(&atakey_bin[0], &ata_data_key[0], 16);
+	memcpy(&atakey_bin[16], &ata_tweak_key[0], 16);
+
+	uint8_t vflashkey_bin[32];
+	memcpy(&vflashkey_bin[0], &encdec_data_key[0], 16);
+	memcpy(&vflashkey_bin[16], &encdec_tweak_key[0], 16);
+
+	if (!qcfw_save_to_file("/dev_usb000/ata_data_key.bin", ata_data_key, 32))
+	{
+		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	if (!qcfw_save_to_file("/dev_usb000/ata_tweak_key.bin", ata_tweak_key, 32))
+	{
+		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	if (!qcfw_save_to_file("/dev_usb000/encdec_data_key.bin", encdec_data_key, 32))
+	{
+		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	if (!qcfw_save_to_file("/dev_usb000/encdec_tweak_key.bin", encdec_tweak_key, 32))
+	{
+		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	if (!qcfw_save_to_file("/dev_usb000/ata_key.bin", atakey_bin, 32))
+	{
+		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	if (!qcfw_save_to_file("/dev_usb000/vflash_key.bin", vflashkey_bin, 32))
+	{
+		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
+		return;
+	}
+
+	PrintString(L"Success!", XAI_PLUGIN, TEX_SUCCESS);
 }
