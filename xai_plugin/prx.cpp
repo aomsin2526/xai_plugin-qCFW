@@ -897,6 +897,11 @@ static void plugin_thread(uint64_t arg)
 	else if (strcmp(action_thread, "qcfw_boot_otheros") == 0)
 		qcfw_boot_otheros();
 
+	else if (strcmp(action_thread, "qcfw_dump_hdd_key") == 0)
+		qcfw_dump_hdd_key();
+	else if (strcmp(action_thread, "qcfw_save_hdd_key_to_usb") == 0)
+		qcfw_save_hdd_key_to_usb();
+
 	thread_alive = false;
 	__asm volatile("sync");
 
