@@ -18,6 +18,7 @@
 #include "rebugtoolbox.h"
 #include "erk.h"
 #include "overclock.h"
+#include "qcfw.h"
 
 #define XAI_VERSION "XAI Version 1.25"
 
@@ -227,7 +228,7 @@ static void plugin_thread(uint64_t arg)
 		if(toggle_cobra_version() == CELL_OK)
 		{
 			wait(2);
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 		}
 	}
 	else if(strcmp(action_thread, "cobra_mode") == 0)
@@ -235,7 +236,7 @@ static void plugin_thread(uint64_t arg)
 		if(toggle_cobra() == CELL_OK)
 		{
 			wait(2);
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 		}
 	}
 	else if(strcmp(action_thread, "toggle_plugins") == 0)
@@ -632,14 +633,14 @@ static void plugin_thread(uint64_t arg)
 		buzzer(CONTINUOUS_BEEP);
 
 	// CEX2DEX Options
-	else if(strcmp(action_thread, "convert_cex") == 0)
-		cex2dex(DEX_TO_CEX);
-	else if(strcmp(action_thread, "convert_dex") == 0)
-		cex2dex(CEX_TO_DEX);
+	//else if(strcmp(action_thread, "convert_cex") == 0)
+	//	cex2dex(DEX_TO_CEX);
+	//else if(strcmp(action_thread, "convert_dex") == 0)
+	//	cex2dex(CEX_TO_DEX);
 	else if(strcmp(action_thread, "swap_kernel") == 0)
 		swapKernel();
-	else if(strcmp(action_thread, "check_targetid") == 0)			
-		getTargetID(0);
+	//else if(strcmp(action_thread, "check_targetid") == 0)			
+	//	getTargetID(0);
 	else if(strcmp(action_thread, "swap_ip_xmb") == 0)			
 		toggle_xmbplugin();
 	else if(strcmp(action_thread, "toggle_vsh") == 0)			
@@ -686,14 +687,14 @@ static void plugin_thread(uint64_t arg)
 		setLed("special2");
 
 	// QA options
-	else if(strcmp(action_thread, "check_qa") == 0)
-		read_qa_flag();
-	else if(strcmp(action_thread, "enable_qa_normal") == 0)
-		set_qa(BASIC);
-	else if(strcmp(action_thread, "enable_qa_advanced") == 0)
-		set_qa(FULL);
-	else if(strcmp(action_thread, "disable_qa") == 0)
-		set_qa(DISABLE);
+	//else if(strcmp(action_thread, "check_qa") == 0)
+	//	read_qa_flag();
+	//else if(strcmp(action_thread, "enable_qa_normal") == 0)
+	//	set_qa(BASIC);
+	//else if(strcmp(action_thread, "enable_qa_advanced") == 0)
+	//	set_qa(FULL);
+	//else if(strcmp(action_thread, "disable_qa") == 0)
+	//	set_qa(DISABLE);
 
 	// xRegistry options	
 	else if(strcmp(action_thread, "backup_registry") == 0)	
@@ -780,15 +781,15 @@ static void plugin_thread(uint64_t arg)
 	else if(strcmp(action_thread, "rsod_fix") == 0)
 	{		
 		if(rsod_fix() == true)
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 	}	
 	else if(strcmp(action_thread, "service_mode") == 0)
 	{
 		if(!service_mode())
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 	}	
-	else if(strcmp(action_thread, "remarry_bd") == 0)			
-		remarry_bd();	
+	//else if(strcmp(action_thread, "remarry_bd") == 0)			
+	//	remarry_bd();	
 	else if(strcmp(action_thread, "check_ros_bank") == 0)			
 		check_ros_bank();	
 	else if(strcmp(action_thread, "check_8th_spe") == 0)			
@@ -797,14 +798,14 @@ static void plugin_thread(uint64_t arg)
 		toggle_8th_spe();
 	else if(strcmp(action_thread, "patch_prodg") == 0)	
 		Patch_ProDG();
-	else if(strcmp(action_thread, "enable_dex_support") == 0)	
-		enable_custom_support(0);
-	else if(strcmp(action_thread, "disable_dex_support") == 0)	
-		disable_custom_support(0);
-	else if(strcmp(action_thread, "enable_decr_support") == 0)	
-		enable_custom_support(1);
-	else if(strcmp(action_thread, "disable_decr_support") == 0)	
-		disable_custom_support(1);
+	//else if(strcmp(action_thread, "enable_dex_support") == 0)	
+	//	enable_custom_support(0);
+	//else if(strcmp(action_thread, "disable_dex_support") == 0)	
+	//	disable_custom_support(0);
+	//else if(strcmp(action_thread, "enable_decr_support") == 0)	
+	//	enable_custom_support(1);
+	//else if(strcmp(action_thread, "disable_decr_support") == 0)	
+	//	disable_custom_support(1);
 	else if(strcmp(action_thread, "toggle_devblind") == 0)			
 		toggle_devblind();	
 	else if(strcmp(action_thread, "load_kernel") == 0)	
@@ -817,10 +818,10 @@ static void plugin_thread(uint64_t arg)
 		export_rap();
 	else if(strcmp(action_thread, "dump_ids") == 0)	
 		dump_ids();	
-	else if(strcmp(action_thread, "dump_erk") == 0)	
-		dumpERK(ERK);		
-	else if(strcmp(action_thread, "dump_metldr") == 0)	
-		dumpERK(METLDR);	
+	//else if(strcmp(action_thread, "dump_erk") == 0)	
+	//	dumpERK(ERK);		
+	//else if(strcmp(action_thread, "dump_metldr") == 0)	
+	//	dumpERK(METLDR);	
 	else if(strcmp(action_thread, "dump_lv2") == 0)	
 		dump_lv(LV2);		
 	else if(strcmp(action_thread, "dump_lv1") == 0)	
@@ -916,12 +917,12 @@ static void plugin_thread(uint64_t arg)
 		rtb_go();
 
 	// OtherOS options
-	else if(strcmp(action_thread, "otheros_install") == 0)	
-		setup_otherOS();
-	else if(strcmp(action_thread, "otheros_flag") == 0)
-		set_flag(OTHEROS_FLAG);
-	else if(strcmp(action_thread, "gameos_flag") == 0)
-		set_flag(GAMEOS_FLAG);
+	//else if(strcmp(action_thread, "otheros_install") == 0)	
+	//	setup_otherOS();
+	//else if(strcmp(action_thread, "otheros_flag") == 0)
+	//	set_flag(OTHEROS_FLAG);
+	//else if(strcmp(action_thread, "gameos_flag") == 0)
+	//	set_flag(GAMEOS_FLAG);
 	
 	// Recovery options
 	else if(strcmp(action_thread, "applicable_version") == 0)	
@@ -945,10 +946,20 @@ static void plugin_thread(uint64_t arg)
 	else if(strcmp(action_thread, "enable_hvdbg") == 0)
 	{
 		if(enable_hvdbg() == true)
-			rebootXMB(SYS_HARD_REBOOT);
+			rebootXMB(SYS_SOFT_REBOOT);
 	}
 	else if(strcmp(action_thread, "usb_firm_loader") == 0)	
 		usb_firm_loader();*/
+
+	else if (strcmp(action_thread, "qcfw_install_otheros") == 0)
+		qcfw_install_otheros();
+	else if (strcmp(action_thread, "qcfw_boot_otheros") == 0)
+		qcfw_boot_otheros();
+
+	else if (strcmp(action_thread, "qcfw_dump_hdd_key") == 0)
+		qcfw_dump_hdd_key();
+	else if (strcmp(action_thread, "qcfw_save_hdd_key_to_usb") == 0)
+		qcfw_save_hdd_key_to_usb();
 
 	xai_loaded = 0;
 	__asm volatile("sync");	
