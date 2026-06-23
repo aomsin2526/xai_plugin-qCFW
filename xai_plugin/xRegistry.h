@@ -66,8 +66,8 @@ class xsetting_CC56EB2D_class
 
 		int SetRegistryNpGuestCountry(char *value)	{return SetRegistryString(GetCurrentUserNumber(), 0x82, value, 2);}
 		int SetRegistryNpGuestLang(char * value) {return SetRegistryString(GetCurrentUserNumber(), 0x83, value, 2);}
-		int SetRegistryNpGuestBirth(int value) {int v; SetRegistryValue(GetCurrentUserNumber(), 0x84, value);}
-		int SetRegistryFocusMask(int value) {int v; SetRegistryValue(GetCurrentUserNumber(), 0x8D, value);}
+		int SetRegistryNpGuestBirth(int value) {SetRegistryValue(GetCurrentUserNumber(), 0x84, value); return 0;}
+		int SetRegistryFocusMask(int value) {SetRegistryValue(GetCurrentUserNumber(), 0x8D, value); return 0;}
 };
 
 class xsetting_16A8A805_class

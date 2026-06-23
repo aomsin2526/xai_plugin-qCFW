@@ -12,6 +12,9 @@ char log_path[0x100];
 
 int (*vshtask_A02D46E7)(int, const char *);
 
+int (*vsh_sprintf)( char*, const char*,...);
+int (*vsh_swprintf)(wchar_t *, size_t, const wchar_t *,...);
+
 void load_log_functions()
 {	
 	setNIDfunc(vsh_sprintf, "stdc", 0x273B9711);
@@ -30,7 +33,6 @@ int console_write(const char *s)
 
 void log_data(const void *buffer, int bufsize)
 {	
-	char tmp[0x30];
 	log("Dumping Data:\n");
 	
 	for(int i = 0 ; i < bufsize; i = i + 0x10)

@@ -10,16 +10,16 @@
 #include "otheros.h"
 #include "savegames.h"
 
-static wchar_t wchar_string[360]; // Global variable for swprintf
+//static wchar_t wchar_string[360]; // Global variable for swprintf
 
 int mount_dev_blind()
 {
-	return cellFsUtilMount("CELL_FS_IOS:BUILTIN_FLSH1", "CELL_FS_FAT", DEV_BLIND, 0, 0, 0, 0);
+	return cellFsUtilityMount("CELL_FS_IOS:BUILTIN_FLSH1", "CELL_FS_FAT", DEV_BLIND, 0, 0, 0, 0);
 }
 
 int umount_dev_blind()
 {
-	return cellFsUtilUnMount(DEV_BLIND, 0);
+	return cellFsUtilUmount(DEV_BLIND, 0);
 }
 
 int lv2_ss_get_cache_of_flash_ext_flag(uint8_t *flag)
@@ -336,7 +336,7 @@ int checkSyscalls(int mode)
 	return 0;
 }
 
-void buzzer(uint8_t mode)
+void buzzer(uint32_t mode)
 {	
 	system_call_3(392, 0x1007, 0xA, mode);
 }
@@ -365,7 +365,25 @@ int is_hen()
 	return 1;
 }
 
-int sys_ss_secure_rtc(uint64_t time)
+int sys_ss_secure_rtc_set_rtc()
+{
+	uint64_t data[4] __attribute__((aligned(16)));
+	data[0] = 0xC49D317537BCE044LL;
+	data[1] = 0x2F2DCBB68F2741FBLL;
+	data[2] = 0x8A34ECA98B8E3FF5LL;
+	data[3] = 0x94BF93D3C9FE1D25LL;
+
+	system_call_4(0x362, 0x3001, (uint64_t)data, 0x20, 0);
+	return_to_user_prog(int);
+}
+
+int sys_ss_secure_rtc_get_time(uint64_t *sec, uint64_t *nsec)
+{
+	system_call_4(0x362, 0x3002, 0, (uint64_t)sec, (uint64_t)nsec); 
+	return_to_user_prog(int);
+}
+
+int sys_ss_secure_rtc_set_time(uint64_t time)
 {
 	system_call_4(0x362, 0x3003, time / 1000000, 0, 0);
 	return_to_user_prog(int);
@@ -373,7 +391,7 @@ int sys_ss_secure_rtc(uint64_t time)
 
 int sysGetCurrentTime(uint64_t *sec, uint64_t *nsec)
 {
-	system_call_2(145,(uint32_t)sec, (uint32_t)nsec);
+	system_call_2(145, (uint32_t)sec, (uint32_t)nsec);
 	return_to_user_prog(int);
 }
 
@@ -385,6 +403,6 @@ int sysSetCurrentTime(uint64_t sec, uint64_t nsec)
 
 int sys_time_get_rtc(uint64_t *real_time_clock)
 {
-	system_call_1(119, (uint32_t)real_time_clock);
+	system_call_1(119, (uint64_t)real_time_clock);
 	return_to_user_prog(int);
 }

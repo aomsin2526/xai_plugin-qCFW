@@ -7,7 +7,6 @@
 #include <cell/fs/cell_fs_file_api.h>
 #include <sysutil/sysutil_gamecontent.h>
 #include "payload.h"
-#include "payloads.h"
 #include "mm.h"
 #include "cfw_settings.h"
 #include "gccpch.h"
@@ -15,11 +14,9 @@
 #include "erk.h"
 #include "hvcall.h"
 
-static wchar_t wchar_string[120]; // Global variable for swprintf
+const long int payload_size = 0x32E0;
 unsigned char payload[payload_size];
 uint64_t toc = 0;
-
-static uint8_t eid_root_key[EID_ROOT_KEY_SIZE];
 
 uint64_t htab_ori, map1_ori, map2_ori, spe_ori;
 uint64_t permission_ori, OPD1_ori, OPD2_ori;
@@ -101,6 +98,11 @@ static int run_payload(uint64_t arg, uint64_t arg_size)
 	return_to_user_prog(int);
 }
 
+#include "payloads/payload_490C.h"
+#include "payloads/payload_481C_489C.h"
+#include "payloads/payload_481D_489D.h"
+#include "payloads/payload_484DEH.h"
+
 // Thanks to Mathieulh, flatz, CMX, zecoxao and M4j0r
 int dump_eid_root_key(uint8_t output[0x30], int mode)
 {
@@ -121,28 +123,28 @@ int dump_eid_root_key(uint8_t output[0x30], int mode)
 	if(lv2_peek(CEX_OFFSET) == CEX)
 	{
 		OFFSET_HVSC_REDIRECT = REDIRECT_OFFSET;
-		memcpy(payload, payload_481C_489C, payload_size);
+		memcpy(payload, payload_481C_489C, sizeof(payload_481C_489C));
 		toc = TOC_OFFSET;
 		log("CEX FW detected\n");
 	}
 	else if(lv2_peek(CEX_OFFSET - 0x10) == CEX)
 	{
 		OFFSET_HVSC_REDIRECT = REDIRECT_490_OFFSET;
-		memcpy(payload, payload_490C, payload_size);
+		memcpy(payload, payload_490C, sizeof(payload_490C));
 		toc = TOC_490_OFFSET;
 		log("CEX FW detected\n");
 	}
 	else if(lv2_peek(DEX_OFFSET) == DEX)
 	{
 		OFFSET_HVSC_REDIRECT = REDIRECT_DEX_OFFSET;
-		memcpy(payload, payload_481D_489D, payload_size);
+		memcpy(payload, payload_481D_489D, sizeof(payload_481D_489D));
 		toc = TOC_DEX_OFFSET;
 		log("DEX FW detected\n");
 	}
 	else if(lv2_peek(DEH_OFFSET) == DEH)
 	{
 		OFFSET_HVSC_REDIRECT = REDIRECT_DEH_OFFSET;
-		memcpy(payload, payload_484DEH, payload_size);
+		memcpy(payload, payload_484DEH, sizeof(payload_484DEH));
 		toc = TOC_DEH_OFFSET;
 		log("DEH FW detected\n");
 	}
@@ -163,7 +165,7 @@ int dump_eid_root_key(uint8_t output[0x30], int mode)
 
 	payload_installed = 1;
 
-	metldr_data = (uint8_t *)__malloc(METLDR_SIZE);
+	metldr_data = (uint8_t *)_malloc(METLDR_SIZE);
 	if(!metldr_data)
 	{
 		log("Unable to malloc data\n");
@@ -210,7 +212,7 @@ int dump_eid_root_key(uint8_t output[0x30], int mode)
 
 		final_size = metldr_size + 0x400;
 
-		final_output = (uint8_t *)__malloc(final_size);
+		final_output = (uint8_t *)_malloc(final_size);
 		if(!final_output)
 		{
 			log("Unable to malloc data\n");
@@ -261,8 +263,8 @@ error:
 	if(patches_installed)
 		restore_patches();
 
-	__free(metldr_data);
-	__free(final_output);
+	_free(metldr_data);
+	_free(final_output);
 
 	return result;
 }
@@ -271,7 +273,6 @@ void dumperk(int mode)
 {
 	int dumped = 1, port = 0;
 	char dump_file_path[CELL_GAME_PATH_MAX];
-	wchar_t wchar_string[120];
 	uint8_t dumped_erk[0x30];
 		
 	dumped = dump_eid_root_key(dumped_erk, mode);	

@@ -82,6 +82,9 @@
 #define LINES_QRC_ORI					"/dev_blind/vsh/resource/qgl/lines.qrc.ori"
 #define LINES_QRC_MOD					"/dev_blind/vsh/resource/qgl/lines.qrc.mod"
 
+#define FAN_BIN_NE_FILE					"/dev_hdd0/vm/ne/fan.bin"
+#define FAN_BIN_GX_FILE					"/dev_hdd0/vm/gx/fan.bin"
+
 #define BDVD_DEV_ID					0x101000000000006ULL
 
 #define LV2							0
@@ -138,47 +141,10 @@ typedef struct _PS3RegionInfo
 	uint64_t last_address_region;
 } PS3RegionInfo;
 
-static RegionCode regionPS3[14] =
-{
-	{ 0x00, "msg_default", 0, 0 },
-	{ 0x83, "msg_japan", 2, 1 }, 
-	{ 0x84, "msg_usa", 1, 1 },  
-	{ 0x85, "msg_europe", 2, 2 }, 
-	{ 0x86, "msg_korea", 3, 1 },
-	{ 0x87, "msg_uk", 2, 2 }, 
-	{ 0x88, "msg_mexico", 4, 1 }, 
-	{ 0x89, "msg_australia", 4, 2 },
-	{ 0x8A, "msg_asia", 3, 1 }, 
-	{ 0x8B, "msg_taiwan", 3, 1 }, 
-	{ 0x8C, "msg_russia", 5, 4 },
-	{ 0x8D, "msg_china", 6, 4 }, 
-	{ 0x8E, "msg_hongkong", 3, 1 }, 
-	{ 0x8F, "msg_brazil", 4, 1},
-};
-
-static DVDRegionCode dvd_video_region[6] =
-{
-	{ 1, "Region 1" }, 
-	{ 2, "Region 2" },  
-	{ 3, "Region 3" }, 
-	{ 4, "Region 4" },
-	{ 5, "Region 5" }, 
-	{ 6, "Region 6" }, 
-};
-
-static BDRegionCode bd_video_region[3] =
-{
-	{ 1, "Region A" }, 
-	{ 2, "Region B" },  
-	{ 4, "Region C" }, 
-};
-
-static uint8_t eid2_indiv_seed_[0x40] = 
-{		0x74, 0x92, 0xE5, 0x7C, 0x2C, 0x7C, 0x63, 0xF4, 0x49, 0x42, 0x26, 0x8F, 0xB4, 0x1C, 0x58, 0xED, 
-        0x66, 0x83, 0x41, 0xF9, 0xC9, 0x7B, 0x29, 0x83, 0x96, 0xFA, 0x9D, 0x82, 0x07, 0x51, 0x99, 0xD8, 
-        0xBC, 0x1A, 0x93, 0x4B, 0x37, 0x4F, 0xA3, 0x8D, 0x46, 0xAF, 0x94, 0xC7, 0xC3, 0x33, 0x73, 0xB3, 
-        0x09, 0x57, 0x20, 0x84, 0xFE, 0x2D, 0xE3, 0x44, 0x57, 0xE0, 0xF8, 0x52, 0x7A, 0x34, 0x75, 0x3D
-};
+extern RegionCode regionPS3[14];
+extern DVDRegionCode dvd_video_region[6];
+extern BDRegionCode bd_video_region[3];
+extern uint8_t eid2_indiv_seed_[0x40];
 
 struct pblock_aes_struct
 {
@@ -260,8 +226,6 @@ typedef struct function_descriptor
 	void    *toc;	
 } f_desc_t;
 
-int cellFsUtilUnMount(const char *device_path, int r4);
-int cellFsUtilMount(const char *device_name, const char *device_fs, const char *device_path, int r6, int write_prot, int r8, int *r9);
 int AesCbcCfbEncrypt(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv);
 int AesCbcCfbDecrypt(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv);
 int aes_omac1(uint8_t *out, uint8_t *input, uint32_t length, uint8_t *key, uint32_t keybits);
@@ -273,18 +237,6 @@ int sha1_hmac_finish(uint8_t *hmac_hash, uint64_t data[160]);
 int sha1_hash(uint8_t *out_sha1, uint8_t *in, uint32_t length);
 int verify_ecdsa(uint8_t signature, uint8_t *hash, uint8_t *public_key, int curve);
 
-int GetIDPS(void *idps);
-
-int update_mgr_read_eeprom(int offset, void *buffer);
-int update_mgr_write_eeprom(int offset, int value);
-
-void __free(void *ptr);
-int __malloc(size_t size);
-FILE *__fopen(const char *filename, const char *mode);
-size_t __fread(void *pointer, size_t size, size_t nmemb, FILE *stream);
-int __fclose(FILE *stream);
-int __memalign(size_t boundary, size_t size_arg);
-
 void load_cfw_functions();
 int RetrieveString(const char *string, const char *plugin);
 void PrintString(wchar_t *string, const char *plugin, const char *tex_icon);
@@ -294,9 +246,9 @@ int readFile(const char *file, uint8_t *buffer, size_t size);
 int get_usb_device();
 
 void showMessage(const char *string, const char *plugin, const char *tex_icon);
-int customMessage(const char *msg_string, const char *text, const char *mode);
-int customMessage(const char *msg_string, int data, const char *mode);
-int customMessage2(const char *msg_string, const char *msg_string2, const char *mode);
+void customMessage(const char *msg_string, const char *text, const char *mode);
+void customMessage(const char *msg_string, int data, const char *mode);
+void customMessage2(const char *msg_string, const char *msg_string2, const char *mode);
 
 int patch_savedata();
 int create_rifs();
@@ -318,13 +270,14 @@ int set_qa(int value);
 void show_cobra_info();
 int save_cobra_fan_cfg(int mode);
 int save_ps2_fan_cfg(int mode);
+int save_ps2_dynamic_cfg(int mode);
 
 //void allow_restore_sc();
 //void skip_existing_rif();
 //void toogle_PS2_disc_icon();
 void toggle_ofw_mode();
 void toggle_gameboot();
-//void toggle_epilepsy_warning();
+void toggle_epilepsy_warning();
 void toggle_coldboot_animation();
 void toggle_hidden_trophy_patch();
 
@@ -376,7 +329,7 @@ void close_xml_list();
 
 //int load_ftp();
 //int unload_ftp();
-int toggle_trophy_unlocker();
+int toggle_trophy_unlocker(int mode);
 
 void spoof_idps();
 void spoof_psid();
@@ -404,6 +357,8 @@ void check_region_values();
 void set_region(int region, uint32_t dvd_region, uint32_t bd_region, uint32_t tvSystem);
 
 void Fix_CBOMB();
+int toggle_demo();
+int toggle_screenshot();
 void decryptRedumpISO(int src);
 int swap_libaudio();
 

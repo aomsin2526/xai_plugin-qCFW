@@ -5,7 +5,6 @@
 
 #include <string.h>
 #include "payload.h"
-#include "payloads.h"
 #include "log.h"
 #include "functions.h"
 #include "common.h"
@@ -51,7 +50,7 @@ void lv2_copy_from_user(const void* src, uint64_t dst, uint64_t size)
 
 int install_payload(void) 
 {
-	if(!toc || payload_size <= 0)
+	if(!toc)
 		return -1;
 
 	lv2_poke(PAYLOAD_OPD_OFFSET + 0, PAYLOAD_OFFSET);

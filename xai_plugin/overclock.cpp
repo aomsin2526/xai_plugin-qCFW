@@ -6,6 +6,7 @@
 #include "gccpch.h"
 #include "log.h"
 #include "overclock.h"
+#include <cell/fs/cell_fs_file_api.h>
 
 static wchar_t wchar_string[360]; // Global variable for swprintf
 

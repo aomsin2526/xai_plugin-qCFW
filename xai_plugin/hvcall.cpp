@@ -57,7 +57,6 @@ int lv1_insert_htab_entry(uint64_t htab_id, uint64_t hpte_group, uint64_t hpte_v
 int lv1_write_htab_entry(uint64_t vas_id, uint64_t hpte_index, uint64_t hpte_v, uint64_t hpte_r) 
 {
 	int result;
-	uint64_t tmp1, tmp2, tmp3, tmp4;
 
 	INSTALL_HVSC_REDIRECT(OFFSET_HVSC_REDIRECT);
 

@@ -34,7 +34,6 @@
 
 int fd;
 char output[120];
-static wchar_t wchar_string[120]; // Global variable for swprintf
 
 static uint64_t auth_check_offset, um_read_eeprom_offset, um_write_eeprom_offset;
 static uint64_t um_nspmo_eeprom_offset, scm_read_eeprom_offset, scm_write_eeprom_offset;
@@ -63,7 +62,6 @@ uint64_t findValueinLV1(uint64_t min_offset, uint64_t max_offset, uint64_t value
 
 static int dump_eeprom_data(uint32_t offset, char *location)
 {
-	CellFsStat stat;
 	char file_path[120];
 	int result;
 	uint8_t value;
@@ -78,7 +76,7 @@ static int dump_eeprom_data(uint32_t offset, char *location)
 
 	log("Dumping %X.bin...\n", (int)offset);
 
-	for(int i = offset; i < offset + 0x100; i++)
+	for(uint32_t i = offset; i < offset + 0x100; i++)
 	{
 		result = lv2_ss_update_mgr_if(UPDATE_MGR_PACKET_ID_READ_EEPROM, i, (uint64_t) &value, 0, 0, 0, 0);
 
@@ -166,7 +164,7 @@ int dump_eeprom()
 {
 	char usb_location[120], location[120];
 	int ret;
-	int string, usb_port;
+	int usb_port;
 
 	// HEN
 	if(!is_hen())

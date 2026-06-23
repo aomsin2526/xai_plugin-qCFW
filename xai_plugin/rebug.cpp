@@ -8,6 +8,7 @@
 #include "cfw_settings.h"
 #include "functions.h"
 #include "xRegistry.h"
+#include "cex2dex.h"
 
 void normal_mode_to_rebug_mode()
 {
@@ -17,8 +18,8 @@ void normal_mode_to_rebug_mode()
 	{
 		if(cellFsStat(SYSCONF_SPRX_CEX, &stat) == CELL_OK)
 		{
-			cellFsRename(SYSCONF_SPRX, SYSCONF_SPRX_DEX);
-			cellFsRename(SYSCONF_SPRX_CEX, SYSCONF_SPRX);
+			cellFsRename(SYSCONF_SPRX_DEFAULT, SYSCONF_SPRX_DEX);
+			cellFsRename(SYSCONF_SPRX_CEX, SYSCONF_SPRX_DEFAULT);
 		}
 	}
 
@@ -172,7 +173,6 @@ int rebug_mode()
 
 int debugsettings_mode()
 {
-	int ret;
 	CellFsStat statinfo;
 
 	mount_dev_blind();
@@ -180,15 +180,15 @@ int debugsettings_mode()
 	// "/dev_blind/vsh/module/sysconf_plugin.sprx.cex"
 	if(cellFsStat(SYSCONF_SPRX_CEX, &statinfo) == CELL_OK)
 	{
-		cellFsRename(SYSCONF_SPRX, SYSCONF_SPRX_DEX);
-		cellFsRename(SYSCONF_SPRX_CEX, SYSCONF_SPRX);
+		cellFsRename(SYSCONF_SPRX_DEFAULT, SYSCONF_SPRX_DEX);
+		cellFsRename(SYSCONF_SPRX_CEX, SYSCONF_SPRX_DEFAULT);
 		customMessage("msg_debug_settings_status", "MENU CEX QA", TEX_SUCCESS);
 	}
 	// "/dev_blind/vsh/module/sysconf_plugin.sprx.dex"
 	else if(cellFsStat(SYSCONF_SPRX_DEX, &statinfo) == CELL_OK)
 	{	
-		cellFsRename(SYSCONF_SPRX, SYSCONF_SPRX_CEX);
-		cellFsRename(SYSCONF_SPRX_DEX, SYSCONF_SPRX);
+		cellFsRename(SYSCONF_SPRX_DEFAULT, SYSCONF_SPRX_CEX);
+		cellFsRename(SYSCONF_SPRX_DEX, SYSCONF_SPRX_DEFAULT);
 		customMessage("msg_debug_settings_status", "MENU DEBUG", TEX_SUCCESS);
 	}
 	else

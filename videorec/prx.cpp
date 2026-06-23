@@ -93,7 +93,6 @@ void log(char * buffer)
 {
 	console_write(buffer);
 	int size = strlen(buffer);
-	CellFsErrno err;
 	int fd;
 	uint64_t nrw;
 	
@@ -112,7 +111,7 @@ void log(char * buffer)
 			//notify("data written.");
 		}
 	}
-	err = cellFsClose(fd);
+	cellFsClose(fd);
 }
 
 void log(char * format, int param1)
@@ -134,7 +133,6 @@ void log_key(char * keyname,void * key)
 void log_data(const void * buffer, int bufsize)
 {	
 	//log("Dumping Data:\n");
-	char tmp[0x30];
 	for(int i=0;i<bufsize;i=i+0x10)
 	{
 		log("%08X  ", ((int)buffer)+i);
@@ -164,7 +162,7 @@ extern "C" int _videorec_export_function(void)
 bool recording_hooked = false;
 extern "C" int _videorec_export_function_video_rec(void)
 {	
-
+	return 0;
 }
 
 
@@ -172,7 +170,7 @@ extern "C" int _videorec_export_function_video_rec(void)
 
 
 bool klic_hooked = false;
-int npdr_handler(const void * buffer, unsigned int bufsize){};
+int npdr_handler(const void * buffer, unsigned int bufsize) { return 0; };
 int (*npdr_handler_)(const void * buffer, unsigned int bufsize)=npdr_handler;
 int npdr_handler_hook(const void * buffer,unsigned int bufsize)
 {
@@ -208,7 +206,7 @@ int ps3_interface_function13_hook(int* r3,int* r4,char* r5,int r6,void * key)
 	log_key("Secure File ID",key);
 	return DoUnk13_(r3,r4,r5,r6,key);
 }
-int ps3_savedata_plugin_init__(void * view){};
+int ps3_savedata_plugin_init__(void * view) { return 0; };
 int (*ps3_savedata_plugin_init_bk)(void * view) = ps3_savedata_plugin_init__;
 int ps3_savedata_plugin_init_hook(void * view)
 {
@@ -247,7 +245,7 @@ extern "C" int _videorec_export_function_secureid(void)
 bool sfoverride_hooked = false;
 bool print_sysver = false;
 bool print_attribute = false;
-int x3_0xD277E345_(int r3,int * index_table, int * out){};
+int x3_0xD277E345_(int r3,int * index_table, int * out) { return 0; };
 int (*x3_0xD277E345_bk)(int r3,int * index_table, int * out) = x3_0xD277E345_;
 int x3_0xD277E345_hook(int r3,int * index_table, int * out)
 {
@@ -270,8 +268,10 @@ int x3_0xD277E345_hook(int r3,int * index_table, int * out)
 			*str = *str | 0xA5000000;
 		}
 	}
+
+	return ret;
 }
-int x3_0xA06976E_(int r3,int * index_table, int * out, int * r6, int * max_len){};
+int x3_0xA06976E_(int r3,int * index_table, int * out, int * r6, int * max_len){ return 0; };
 int (*x3_0xA06976E_bk)(int r3,int * index_table, int * out, int * r6, int * max_len) = x3_0xA06976E_;
 int x3_0xA06976E_hook(int r3,int * index_table, int * out, int * r6, int * max_len)
 {	
@@ -291,7 +291,7 @@ int x3_0xA06976E_hook(int r3,int * index_table, int * out, int * r6, int * max_l
 	int ret = x3_0xA06976E_bk(r3,index_table,out,r6,max_len);
 	return ret;
 }
-int GetItemFromMetaList_(int metalist,int item, char * objectfield, int * out){};
+int GetItemFromMetaList_(int metalist,int item, char * objectfield, int * out) { return 0; };
 int (*GetItemFromMetaList_bk)(int metalist,int item, char * objectfield, int * out) = GetItemFromMetaList_;
 int GetItemFromMetaList_hook(int metalist,int item, char * objectfield, int * out)
 {
@@ -320,7 +320,7 @@ int GetItemFromMetaList_hook(int metalist,int item, char * objectfield, int * ou
 	}
 	return ret;
 }
-int GetItemFromMetaList_Mini_(int metalist,int item, char * objectfield, int * out){};
+int GetItemFromMetaList_Mini_(int metalist,int item, char * objectfield, int * out){ return 0; };
 int (*GetItemFromMetaList_bk_Mini)(int metalist,int item, char * objectfield, int * out) = GetItemFromMetaList_Mini_;
 int GetItemFromMetaList_hook_Mini(int metalist,int item, char * objectfield, int * out)
 {
@@ -403,7 +403,7 @@ void override_sfo(void * buf)
 	}
 }
 bool reading_sfo = false;
-int cellFsOpen_(const char *path,int flags,int *fd,void *arg,uint64_t size){};
+int cellFsOpen_(const char *path,int flags,int *fd,void *arg,uint64_t size) { return 0; };
 int (*cellFsOpen_bk)(const char *path,int flags,int *fd,void *arg,uint64_t size) = cellFsOpen_;
 int cellFsOpen_hook(const char *path,int flags,int *fd,void *arg,uint64_t size)
 {
@@ -422,7 +422,7 @@ int cellFsOpen_hook(const char *path,int flags,int *fd,void *arg,uint64_t size)
 		return cellFsOpen_bk(path,flags,fd,arg,size);
 	}	
 }
-int cellFsRead_(int fd, void *buf, uint64_t nbytes, uint64_t *nread){};
+int cellFsRead_(int fd, void *buf, uint64_t nbytes, uint64_t *nread) { return 0; };
 int (*cellFsRead_bk)(int fd, void *buf, uint64_t nbytes, uint64_t *nread) = cellFsRead_;
 int cellFsRead_hook(int fd, void *buf, uint64_t nbytes, uint64_t *nread)
 {
@@ -479,7 +479,7 @@ extern "C" int _videorec_export_function_sfoverride(void)
 
 
 
-void notify(char * param)
+/*void notify(char * param)
 {
 	log(param);	log("\n");	
 	vshtask_A02D46E7(0, param);
@@ -490,7 +490,7 @@ void notify(const char * format, int param1)
 	vsh_sprintf(tmp,format, param1);
 	log(tmp); log("\n");	
 	vshtask_A02D46E7(0, tmp);
-}
+}*/
 
 extern "C" int _videorec_prx_entry(void)
 {

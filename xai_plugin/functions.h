@@ -299,14 +299,16 @@ int sys_sm_request_error_log(uint8_t offset, uint8_t *unknown0, uint32_t *unknow
 
 int checkSyscalls(int mode);
 
-void buzzer(uint8_t mode);
+void buzzer(uint32_t mode);
 
 int check_flash_free_space();
 
 int lv2_gelic_eurus_control(uint16_t cmd, uint8_t *cmdbuf, uint64_t cmdbuf_size);
 
 int is_hen();
-int sys_ss_secure_rtc(uint64_t time);
+int sys_ss_secure_rtc_set_time(uint64_t time);
+int sys_ss_secure_rtc_get_time(uint64_t *sec, uint64_t *nsec);
+int sys_ss_secure_rtc_set_rtc();
 int sysGetCurrentTime(uint64_t *sec, uint64_t *nsec);
 int sysSetCurrentTime(uint64_t sec, uint64_t nsec);
 int sys_time_get_rtc(uint64_t *real_time_clock);

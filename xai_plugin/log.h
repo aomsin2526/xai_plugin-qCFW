@@ -7,8 +7,8 @@ void load_log_functions();
 char *getlogpath();
 void setlogpath(char *path);
 
-static int (*vsh_sprintf)( char*, const char*,...);
-static int (*vsh_swprintf)(wchar_t *, size_t, const wchar_t *,...);
+extern int (*vsh_sprintf)( char*, const char*,...);
+extern int (*vsh_swprintf)(wchar_t *, size_t, const wchar_t *,...);
 
 int sprintf_(char *str, const char *format, int v1);
 int sprintf_(char *str, const char *format, int v1, int v2);

@@ -10,6 +10,7 @@
 #define EID0_DECR_BACKUP_TMP			"/dev_hdd0/tmp/EID0_DECR_BACKUP.bin"
 
 #define VSH_SELF_DEFAULT				"/dev_blind/vsh/module/vsh.self"
+#define VSH_SELF_CEX2					"/dev_flash/vsh/module/vsh.self.cex"
 #define VSH_SELF_CEX					"/dev_blind/vsh/module/vsh.self.cex"
 #define VSH_SELF_DEX					"/dev_blind/vsh/module/vsh.self.dex"
 
@@ -90,4 +91,4 @@ int toggle_sysconf();
 int enable_custom_support(int mode);
 int disable_custom_support(int mode);
 
-#endif __CEX2DEX_H__
+#endif

@@ -17,30 +17,23 @@
 #define DYNAMIC_FAN_65	3
 #define DYNAMIC_FAN_70	4
 #define DYNAMIC_FAN_75	5
-#define FAN_MANUAL		0x70
 #define FAN_MAX			0xFF
 
-// Manual Mode
-#define FAN_MANUAL_40	0x67
-#define FAN_MANUAL_45	0x75
-#define FAN_MANUAL_50	0x80
-#define FAN_MANUAL_55	0x8E
-#define FAN_MANUAL_60	0x9B
-#define FAN_MANUAL_65	0xA8
-#define FAN_MANUAL_70	0xB5
-#define FAN_MANUAL_75	0xC0
-#define FAN_MANUAL_80	0xCE
-#define FAN_MANUAL_85	0xDA
-#define FAN_MANUAL_90	0xE7
-#define FAN_MANUAL_95	0xF4
-
-// PS2 Mode
-#define FAN_PS2_40		0x66
-#define FAN_PS2_50		0x80
-#define FAN_PS2_60		0x9A
-#define FAN_PS2_70		0xB4
-#define FAN_PS2_80		0xCE
-#define FAN_PS2_90		0xE8
+// FAN Speeds
+#define FAN_30	0x4F
+#define FAN_35	0x5B
+#define FAN_40	0x66
+#define FAN_45	0x75
+#define FAN_50	0x80
+#define FAN_55	0x8E
+#define FAN_60	0x9A
+#define FAN_65	0xA8
+#define FAN_70	0xB4
+#define FAN_75	0xC0
+#define FAN_80	0xCE
+#define FAN_85	0xDA
+#define FAN_90	0xE8
+#define FAN_95	0xF4
 
 #define SC_COBRA_SYSCALL8                        			 8
 #define SYSCALL8_OPCODE_PS3MAPI             			0x7777
@@ -163,9 +156,12 @@
 #define PS3MAPI_OPCODE_CREATE_RIF 		 				0x2249
 
 #define PS3MAPI_OPCODE_GAMEBOOT 						0x2250
-//#define PS3MAPI_OPCODE_EPILEPSY_WARNING					0x2251
+#define PS3MAPI_OPCODE_EPILEPSY_WARNING					0x2251
 #define PS3MAPI_OPCODE_COLDBOOT 						0x2252
 #define PS3MAPI_OPCODE_TROPHY 							0x2253
+#define PS3MAPI_OPCODE_CUSTOM_TROPHY_TIMESTAMP			0x2254
+#define PS3MAPI_OPCODE_C00_DEMO							0x2255
+#define PS3MAPI_OPCODE_INGAME_SCREENSHOTS 				0x2256
 
 #define SYSCALL8_OPCODE_STEALTH_TEST					0x3993
 #define SYSCALL8_OPCODE_STEALTH_ACTIVATE    			0x3995
@@ -203,9 +199,11 @@ typedef struct
 	//uint8_t color_disc; 	    // 0 = Default (PS2 DVD: yellow disc icon - PS2 CD: blue disc icon) | 1 = PS2 CD/DVD: blue disc icon
 	uint8_t syscalls_mode;      // 0 = CFW syscalls are enabled on boot (Default) | 1 = Fully disable CFW syscalls on boot | 2 = Keep PS3M_API Features only
 	uint8_t gameboot_mode; 	    // 0 = Disabled (Default) | 1 = Enabled
-	//uint8_t epilepsy_warning;   // 0 = Disabled (Default) | 1 = Enabled
-	uint8_t coldboot_mode; 	    // 0 = Enabled (Default)  | 1 = Disabled 
-	uint8_t hidden_trophy_mode; // 0 = Enabled (Default)  | 1 = Disabled (Will show hidden trophy data)
+	uint8_t epilepsy_warning;   // 0 = Disabled (Default) | 1 = Enabled
+	uint8_t coldboot_mode; 	    // 0 = Enabled (Default) | 1 = Disabled 
+	uint8_t hidden_trophy_mode; // 0 = Enabled (Default) | 1 = Disabled (Will show hidden trophy data)
+	uint8_t demo_c00_mode; 		// 0 = Enabled (Default) | 1 = Disabled 
+	uint8_t screenshots_mode; 	// 0 = Enabled (Default) | 1 = Disabled
 } __attribute__((packed)) CobraConfig;
 
 int check_syscall8();
@@ -225,6 +223,8 @@ int toggle_cobra_version();
 int cobra_load_vsh_plugin(int slot, char *path, void *arg, uint32_t arg_size);
 int ps3mapi_unload_vsh_plugin(char* name);
 int ps3mapi_get_vsh_plugin_info(unsigned int slot, char *name, char *filename);
+int ps3mapi_write_process_memory(sys_pid_t pid, uint64_t address, void* buf, int size);
+int ps3mapi_get_process_memory(sys_pid_t pid, uint64_t address, void* buf, int size);
 
 void create_cfw_syscalls();
 

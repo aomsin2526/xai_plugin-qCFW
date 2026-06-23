@@ -55,6 +55,33 @@
       <MakeAllSymbolsPublic>true</MakeAllSymbolsPublic>
       <PreserveIdentifierCase>1</PreserveIdentifierCase>
     </MASM>
+    <PreLinkEvent>
+      <Command>
+      </Command>
+    </PreLinkEvent>
+    <PreBuildEvent>
+      <Command>"bin2c.exe" ^
+  "$(ProjectDir)payloads\payload_490C.bin" ^
+  "$(ProjectDir)payloads\payload_490C.h" ^
+  payload_490C
+
+  "bin2c.exe" ^
+  "$(ProjectDir)payloads\payload_481C_489C.bin" ^
+  "$(ProjectDir)payloads\payload_481C_489C.h" ^
+  payload_481C_489C
+
+    "bin2c.exe" ^
+  "$(ProjectDir)payloads\payload_481D_489D.bin" ^
+  "$(ProjectDir)payloads\payload_481D_489D.h" ^
+  payload_481D_489D
+
+    "bin2c.exe" ^
+  "$(ProjectDir)payloads\payload_484DEH.bin" ^
+  "$(ProjectDir)payloads\payload_484DEH.h" ^
+  payload_484DEH
+
+</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
     <ClCompile>
@@ -75,6 +102,7 @@
     <ClCompile Include="eeprom.cpp" />
     <ClCompile Include="erk.cpp" />
     <ClCompile Include="functions.cpp" />
+    <ClCompile Include="gccpch.cpp" />
     <ClCompile Include="hvcall.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="mm.cpp" />
@@ -83,7 +111,6 @@
     <ClCompile Include="payload.cpp" />
     <ClCompile Include="prx.cpp" />
     <ClCompile Include="qa.cpp" />
-    <ClCompile Include="qcfw.cpp" />
     <ClCompile Include="rebug.cpp" />
     <ClCompile Include="savegames.cpp" />
   </ItemGroup>
@@ -108,7 +135,6 @@
     <ClInclude Include="payload.h" />
     <ClInclude Include="ps3_savedata_plugin.h" />
     <ClInclude Include="qa.h" />
-    <ClInclude Include="qcfw.h" />
     <ClInclude Include="rebug.h" />
     <ClInclude Include="rebugtoolbox.h" />
     <ClInclude Include="recording_settings.h" />
@@ -116,9 +142,6 @@
     <ClInclude Include="x3.h" />
     <ClInclude Include="xmb_plugin.h" />
     <ClInclude Include="xRegistry.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="payloads.h" />
   </ItemGroup>
   <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

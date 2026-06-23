@@ -41,6 +41,48 @@ uint32_t userID = 0;
 
 static uint8_t console_id_key[0x10];
 
+uint8_t empty[0x10] = 
+{
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+uint8_t fake_accountid[0x10] = 
+{
+    0x30, 0x32, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 
+    0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30
+};
+
+static uint8_t rap_initial_key[16] = 
+{
+	0x86, 0x9F, 0x77, 0x45, 0xC1, 0x3F, 0xD8, 0x90, 0xCC, 0xF2, 0x91, 0x88, 0xE3, 0xCC, 0x3E, 0xDF
+};
+
+static uint8_t pbox[16] = 
+{
+	0x0C, 0x03, 0x06, 0x04, 0x01, 0x0B, 0x0F, 0x08, 0x02, 0x07, 0x00, 0x05, 0x0A, 0x0E, 0x0D, 0x09
+};
+
+static uint8_t e1[16] = 
+{
+	0xA9, 0x3E, 0x1F, 0xD6, 0x7C, 0x55, 0xA3, 0x29, 0xB7, 0x5F, 0xDD, 0xA6, 0x2A, 0x95, 0xC7, 0xA5
+};
+
+static uint8_t e2[16] = 
+{
+	0x67, 0xD4, 0x5D, 0xA3, 0x29, 0x6D, 0x00, 0x6A, 0x4E, 0x7C, 0x53, 0x7B, 0xF5, 0x53, 0x8C, 0x74
+};
+
+static uint8_t rif_key_const[0x10] = 
+{ 
+	0xDA, 0x7D, 0x4B, 0x5E, 0x49, 0x9A, 0x4F, 0x53, 0xB1, 0xC1, 0xA1, 0x4A, 0x74, 0x84, 0x44, 0x3B 
+};
+
+static uint8_t idps_const[0x10] =
+{ 
+	0x5E, 0x06, 0xE0, 0x4F, 0xD9, 0x4A, 0x71, 0xBF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 
+};
+
 static uint8_t savegame_param_sfo_key[0x14] =
 {
 	0x0C, 0x08, 0x00, 0x0E, 0x09, 0x05, 0x04, 0x04, 0x0D, 0x01, 
@@ -107,7 +149,7 @@ int search_data(char *buf, char *str, int type, int mode, int overwrite, int che
 	uint16_t offsetString = 0;
 	uint32_t offsetValue = 0;
 
-	for (int i = 0; i < 0x10000 - strlen(str); i++)
+	for (int i = 0; i < 0x10000 - (int)strlen(str); i++)
 	{
 		if (!strcmp((char *)buf + i, str))	
 		{
@@ -170,28 +212,28 @@ int set_accountID(int mode, int overwrite)
     sprintf_(autoLogin, SETTING_AUTOSIGN, userID, NULL);
     sprintf_(accountid, SETTING_ACCOUNTID, userID, NULL);
 
-	uint8_t *dump = (uint8_t *)__malloc(XREGISTRY_FILE_SIZE);	
+	uint8_t *dump = (uint8_t *)_malloc(XREGISTRY_FILE_SIZE);	
 
 	if(!dump)
 		return 4;
 
 	if(readFile(XREGISTRY_FILE, dump, XREGISTRY_FILE_SIZE))
 	{
-		__free(dump);
+		_free(dump);
 		return 3;
 	}
 
 	ret = search_data((char *)dump, autoLogin, AUTOSIGN, WRITE, 0, 0, account_id);
 	if(ret == 2)
 	{
-		__free(dump);
+		_free(dump);
 		return 2;
 	}
 
 	ret = search_data((char *)dump, accountid, ACCOUNTID, mode, overwrite, 0, account_id);
 	switch(ret)
 	{
-		__free(dump);
+		_free(dump);
 
 		case 1:
 			return 1;
@@ -201,7 +243,7 @@ int set_accountID(int mode, int overwrite)
 
 	saveFile(XREGISTRY_FILE, dump, XREGISTRY_FILE_SIZE);
 
-	__free(dump);
+	_free(dump);
 	return 0;
 }
 
@@ -221,11 +263,10 @@ int patch_savedatas(const char *path)
 
 	sprintf_(path_file, "%s/PARAM.SFO", (int)path, NULL);	
 
-	char entry[120];
 	userID = xUserGetInterface()->GetCurrentUserNumber();	
 	sprintf_(acc_char, SETTING_ACCOUNTID, userID, NULL);	
 
-	uint8_t *dump = (uint8_t *)__malloc(XREGISTRY_FILE_SIZE);
+	uint8_t *dump = (uint8_t *)_malloc(XREGISTRY_FILE_SIZE);
 
 	if(!dump)
 		return -1;
@@ -234,7 +275,7 @@ int patch_savedatas(const char *path)
 	{
 		if(readFile(XREGISTRY_FILE, dump, XREGISTRY_FILE_SIZE))
 		{
-			__free(dump);
+			_free(dump);
 			return 1;
 		}
 
@@ -244,7 +285,7 @@ int patch_savedatas(const char *path)
 				
 		// Read and retrieve PARAM.SFO data		
         uint8_t *temp_data_sfo = NULL;
-		temp_data_sfo = (uint8_t *) __malloc(stat.st_size);
+		temp_data_sfo = (uint8_t *) _malloc(stat.st_size);
 
         if(!temp_data_sfo)
 			return -1;		
@@ -253,14 +294,14 @@ int patch_savedatas(const char *path)
         strcpy(sfo_data.file_path, path_file);          
 		if(readFile(path_file, temp_data_sfo, stat.st_size))
 		{
-			__free(temp_data_sfo);
+			_free(temp_data_sfo);
 			return 3;
 		}	
 
 		// PARAM.SFO not valid
 		if(memcmp(temp_data_sfo, &magicSFO, 4)) 
 		{
-			__free(temp_data_sfo);
+			_free(temp_data_sfo);
 			return 4;
 		}
 
@@ -296,7 +337,7 @@ int patch_savedatas(const char *path)
 		sha1_hmac(sfo_data.disc_hash_hash, temp_data_sfo, stat.st_size, disc_hash_key, 0x10);
 		sha1_hmac(sfo_data.authentication_id_hash, temp_data_sfo, stat.st_size, authentication_id, 8);	
 
-		__free(dump);
+		_free(dump);
 
 		sprintf_(path_file, "%s/PARAM.PFD", (int)path, NULL);		
 
@@ -304,11 +345,11 @@ int patch_savedatas(const char *path)
 		{		
 			// Read and retrieve PARAM.PFD data		
             uint8_t *temp_data_pfd = NULL;
-			temp_data_pfd = (uint8_t *) __malloc(stat.st_size);
+			temp_data_pfd = (uint8_t *) _malloc(stat.st_size);
 
             if(!temp_data_pfd)
 			{
-				__free(temp_data_sfo);
+				_free(temp_data_sfo);
 				return -1;
 			}
 
@@ -317,16 +358,16 @@ int patch_savedatas(const char *path)
 
 			if(readFile(path_file, temp_data_pfd, stat.st_size))
 			{
-				__free(temp_data_sfo);
-				__free(temp_data_pfd);
+				_free(temp_data_sfo);
+				_free(temp_data_pfd);
 				return 5;
 			}
 
 			// PARAM.PFD not valid
 			if(memcmp(temp_data_pfd, &magicPFD, 8))
 			{
-				__free(temp_data_sfo);
-				__free(temp_data_pfd);
+				_free(temp_data_sfo);
+				_free(temp_data_pfd);
 				return 6;
 			}
 
@@ -371,25 +412,25 @@ int patch_savedatas(const char *path)
 			// Write new files
 			if(saveFile(sfo_data.file_path, temp_data_sfo, sfo_data.size))
 			{
-				__free(temp_data_sfo);	
-				__free(temp_data_pfd);
+				_free(temp_data_sfo);	
+				_free(temp_data_pfd);
 				return 7;
 			}
 
 			if(saveFile(pfd_data.file_path, temp_data_pfd, pfd_data.size))
 			{
-				__free(temp_data_sfo);	
-				__free(temp_data_pfd);
+				_free(temp_data_sfo);	
+				_free(temp_data_pfd);
 				return 7;
 			}
 
-			__free(temp_data_sfo);	
-			__free(temp_data_pfd);	
+			_free(temp_data_sfo);	
+			_free(temp_data_pfd);	
 
 			return SUCCEEDED;		
 		}		
 
-		__free(temp_data_sfo);				
+		_free(temp_data_sfo);				
 	}
 	
 	return -1;
@@ -397,7 +438,7 @@ int patch_savedatas(const char *path)
 
 int export_rap()
 {	
-	int fd, ret, i, round_num, string, usb_port;
+	int fd, ret, i, round_num, usb_port;
 	char exdata_path[120], actdat_path[120];
 	char license_file[120], contentID[36], exdata_folder[120];
 
@@ -407,14 +448,12 @@ int export_rap()
 	struct rif_t rif;
 	struct actdat_t *actdat = NULL;	
 	
-	uint8_t padding[0x0C];
 	uint8_t encrypted[0x10], decrypted[0x10];
 	uint8_t idps[0x10];
-	uint8_t rifKey[0x10], rapFile[0x10];
-	uint8_t *rap_key, *klicensee;
+	uint8_t rifKey[0x10];
+	uint8_t *rap_key = NULL;
 	uint64_t read;
 
-	wchar_t wchar_string[120];
 	int rap_created = 0;
 
 	usb_port = get_usb_device();
@@ -431,7 +470,7 @@ int export_rap()
 
 	if(sys_ss_get_console_id(idps) == EPERM)
 	{
-		if(GetIDPS(idps) != CELL_OK)
+		if(cellSsAimGetDeviceId(idps) != CELL_OK)
 		{
 			showMessage("msg_idps_dump_fail", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 			return 1;
@@ -470,7 +509,7 @@ int export_rap()
 				goto error;
 
 			sprintf_(actdat_path, ACT_DAT_PATH, userID); 
-			actdat = (struct actdat_t*)__malloc(ACT_DAT_SIZE);
+			actdat = (struct actdat_t*)_malloc(ACT_DAT_SIZE);
 
 			if(!actdat)
 				goto error;
@@ -517,15 +556,19 @@ int export_rap()
 			   for (i = 0; i < 16; ++i) 
 				  key[i] ^= e1[i];
 			}			
+
+			rap_key = (uint8_t*)_malloc(0x10);
+			if(!rap_key) 
+				goto error;
    
 			if(AesCbcCfbEncrypt(rap_key, key, 0x10, rap_initial_key, 128, null_iv) != SUCCEEDED)
-				goto error;			
+				goto error;		
 
 			sprintf_(license_file, "/dev_usb%03d/exdata/%s.rap", usb_port, (int)contentID);
 			if(saveFile(license_file, rap_key, 0x10) != 0)
 			{
 				error:
-				__free(actdat);
+				_free(actdat);
 				cellFsClosedir(fd);
 
 				sprintf_(license_file, "%s.rap", (int)contentID);
@@ -538,11 +581,12 @@ int export_rap()
 					showMessage("msg_rif_created", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 
 				log("Error while exporting %s\n", license_file);
+				_free(rap_key);
 
 				return 1;
 			}
 
-			__free(actdat);
+			_free(actdat);
 			rap_created++;
 		}
 
@@ -555,10 +599,12 @@ int export_rap()
 			else
 				showMessage("msg_rif_created", (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);	
 
+			_free(rap_key);
 			return 0;
 		}
 	}
 
+	_free(rap_key);
 	customMessage("msg_files_not_found", "RIF", TEX_ERROR);
 	cellFsClosedir(fd);
 	return 0;

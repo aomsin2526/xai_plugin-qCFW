@@ -8,11 +8,15 @@
 #include <sys/timer.h>
 #include <cell/fs/cell_fs_file_api.h>
 #include <cell/hash/libmd5.h>
+#include "gccpch.h"
 #include "otheros.h"
 #include "savegames.h"
 #include "functions.h"
 #include "log.h"
 #include "cfw_settings.h"
+
+uint8_t nor_image_md5[0x10] = { 0xCA, 0x5E, 0x95, 0x20, 0xE0, 0x30, 0x66, 0x29, 0x0F, 0x68, 0xF6, 0x7E, 0x91, 0x67, 0xC0, 0xFA };
+uint8_t nand_image_md5[0x10] = { 0x6B, 0x98, 0xE0, 0xAC, 0x24, 0x13, 0xCB, 0x77, 0x65, 0x91, 0x79, 0x46, 0x8F, 0x6A, 0xD0, 0xB5 };
 
 static int setup_vflash()
 {
@@ -111,8 +115,9 @@ error:
 
 static int install_petitboot(char *filename)
 {
-	int fd, bytes;
-	int file_sectors, start_sector, sector_count;
+	int fd;
+	int start_sector, sector_count;
+	uint64_t file_sectors;
 
 	CellFsStat stat;
 	uint8_t buf[VFLASH5_SECTOR_SIZE * 16];
@@ -123,9 +128,6 @@ static int install_petitboot(char *filename)
 	struct os_area_header *hdr;
 	struct os_area_params *params;
 	struct os_area_db *db;	
-
-	unsigned char checksum[0x10], data[1024];
-	int file_found = 0;
 
 	if(cellFsStat(filename, &stat) == CELL_FS_SUCCEEDED)
 	{
@@ -210,9 +212,6 @@ error:
 // 1 = OtherOS
 int set_flag(int flag)
 {
-	wchar_t wchar_string[120];
-
-	int string;
 	int start_sector, sector_count;		
 	uint8_t buf[VFLASH5_SECTOR_SIZE * 16];
 
@@ -262,7 +261,7 @@ int set_flag(int flag)
 	if(hdr->version != HEADER_VERSION) 
 		goto error;
 
-	if(!flag && params->boot_flag == flag)
+	if(!flag && params->boot_flag == (uint32_t)flag)
 	{
 		customMessage("msg_otheros_flag_already_set", (flag ? "OtherOS" : "GameOS"), TEX_INFO2);
 
@@ -297,8 +296,6 @@ error:
 	return 1;
 }
 
-#if 0
-
 int setup_otherOS()
 {
 	FILE *file_md5;
@@ -306,9 +303,8 @@ int setup_otherOS()
 	CellFsStat stat;
 	char filename[120];
 	int bytes, file_found = 0;
-	int string, ret = 0;
+	int ret = 0;
 	unsigned char checksum[0x10], data[1024];	
-	wchar_t wchar_string[120];
 
 	// HEN
 	if(!is_hen())
@@ -348,13 +344,13 @@ int setup_otherOS()
 
 	cellMd5BlockInit(&mdContext);
 
-	file_md5 = __fopen(filename, "rb");
+	file_md5 = _fopen(filename, "rb");
 
-	while((bytes = (int)__fread(data, 1, 1024, file_md5)) != 0)	
+	while((bytes = (int)_fread(data, 1, 1024, file_md5)) != 0)	
         cellMd5BlockUpdate(&mdContext, data, bytes);
 
 	cellMd5BlockResult(&mdContext, checksum);
-	__fclose(file_md5);
+	_fclose(file_md5);
 
 	if(memcmp(checksum, (flashType ? nor_image_md5 : nand_image_md5), 0x10))
 	{
@@ -389,5 +385,3 @@ int setup_otherOS()
 
 	return 0;
 }
-
-#endif

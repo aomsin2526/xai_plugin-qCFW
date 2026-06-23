@@ -8,6 +8,7 @@
 #include <string.h>
 #include <cell/pad.h>
 #include <cell/fs/cell_fs_file_api.h>
+#include <sys/process.h>
 #include <sys/timer.h>
 #include <sys/memory.h>
 #include "log.h"
@@ -44,16 +45,6 @@ explore_plugin_interface *explore_interface;
 
 static uint8_t cconfig[sizeof(CobraConfig)];
 static CobraConfig *cobra_config = (CobraConfig*) cconfig;
-
-int cellFsUtilUnMount(const char *device_path, int r4)
-{
-	return cellFsUtilUmount(device_path, r4);
-}
-
-int cellFsUtilMount(const char *device_name, const char *device_fs, const char *device_path, int r6, int write_prot, int r8, int *r9)
-{
-	return cellFsUtilityMount(device_name, device_fs, device_path, r6, write_prot, r8, r9);
-}
 
 int AesCbcCfbEncrypt(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv)
 {
@@ -100,49 +91,9 @@ int verify_ecdsa(uint64_t ret, uint8_t *hash, uint8_t *public_key, uint8_t *curv
 	return cellCryptoPuEccEcDsaVeri(ret, hash, public_key, curve);
 }
 
-int update_mgr_read_eeprom(int offset, void *buffer)
-{
-	return update_mgr_read_eprom(offset, buffer);
-}
-
-int update_mgr_write_eeprom(int offset, int value)
-{
-	return update_mgr_write_eprom(offset, value);
-}
-
 int sys_storage_send_atapi_command(uint32_t fd, struct lv2_atapi_cmnd_block *atapi_cmnd, uint8_t *buffer) 
 {
 	return sys_storage_send_device_command(fd, 1, atapi_cmnd , sizeof (struct lv2_atapi_cmnd_block), buffer, atapi_cmnd->block_size * atapi_cmnd->blocks);
-}
-
-void __free(void *ptr)
-{
-	_free(ptr);
-}
-
-int __malloc(size_t size)
-{
-	return (int)_malloc(size);
-}
-
-FILE *__fopen(const char *filename, const char *mode)
-{
-	return _fopen(filename, mode);
-}
-
-size_t __fread(void *pointer, size_t size, size_t nmemb, FILE *stream)
-{
-	return (size_t)_fread(pointer, size, nmemb, stream);
-}
-
-int __fclose(FILE *stream)
-{
-	return _fclose(stream);
-}
-
-int __memalign(size_t boundary, size_t size_arg)
-{
-	return (int)_memalign(boundary, size_arg);
 }
 
 int handler1_enabled()
@@ -170,16 +121,6 @@ int* load_module(char *path)
 int Job_start(void *job, int(*handler1)(), void *param1, int r6, int r7, uint8_t(*handler2)())
 {
 	return startJob(job, handler1, param1, r6, r7, handler2);
-}
-
-int GetIDPS(void *idps)
-{
-	return cellSsAimGetDeviceId(idps);
-}
-
-static int GetPSID(void *psid)
-{
-	return cellSsAimGetOpenPSID(psid);
 }
 
 void close_xml_list()
@@ -221,6 +162,7 @@ void load_cfw_functions()
 	setNIDfunc(update_mgr_write_eprom, "vshmain", 0x172B05CD);
 	setNIDfunc(vshmain_74A54CBF, "vshmain", 0x74A54CBF);
 	setNIDfunc(vshmain_5F5729FB, "vshmain", 0x5F5729FB);
+	setNIDfunc(vshmain_25CE539E, "vshmain", 0x25CE539E);	
 
 	setNIDfunc(xBDVDGetInstance, "x3", 0x9C246A91);
 	iBdvd = (xBDVD*)xBDVDGetInstance();
@@ -233,7 +175,10 @@ void load_cfw_functions()
 
 	setNIDfunc(_cellRtcGetCurrentTick, "cellRtc", 0x9DAFC0D9);	 
 	setNIDfunc(_cellRtcSetCurrentTick, "cellRtc", 0xEB22BB86);	 	
-
+	setNIDfunc(_cellRtcSetCurrentSecureTick, "cellRtc", 0x3DC09A3E);	 	
+	setNIDfunc(_cellRtcGetCurrentSecureTick, "cellRtc", 0xC4808FD7);	 
+	//setNIDfunc(_cellRtcGetCurrentClock, "cellRtc", 0x32C941CF);	 
+	
 	setNIDfunc(NotifyWithTexture, "vshcommon", 0xA20E43DB);	
 
 	setNIDfunc(_free, "allocator", 0x77A602DD);
@@ -248,8 +193,7 @@ void load_cfw_functions()
 	setNIDfunc(_fread, "stdc", 0xD40723D6);
 	setNIDfunc(_ctime, "stdc", 0xBC7B4B8E);		
 
-	setNIDfunc(sceNetCtlGetInfoVsh, "netctl_main", 0x9A528B81);	
-}
+	setNIDfunc(sceNetCtlGetInfoVsh, "netctl_main", 0x9A528B81);	}
 
 int get_usb_device()
 {
@@ -276,7 +220,6 @@ int saveFile(const char *path, void *data, size_t size)
 		return -1;
 
 	cellFsChmod(path, 0666);
-
 	cellFsWrite(file, data, size, &write);
 	cellFsClose(file);
 
@@ -292,7 +235,10 @@ int readFile(const char *file, uint8_t *buffer, size_t size)
 		return -1;
 
 	if(cellFsRead(fd, buffer, size, &read) != SUCCEEDED)
+	{
+		cellFsClose(fd);
 		return -1;
+	}
 
 	cellFsClose(fd);
 
@@ -339,21 +285,21 @@ void showMessage(const char *string, const char *plugin, const char *tex_icon)
 	NotifyWithTexture(0, tex_icon, 0, &teximg, &dummy, "", "", 0, (wchar_t*)wstring, 0, 0, 0);	
 }
 
-int customMessage(const char *msg_string, const char *text, const char *mode)
+void customMessage(const char *msg_string, const char *text, const char *mode)
 {
 	int string = RetrieveString(msg_string, (char*)XAI_PLUGIN);	
 	swprintf_(wchar_string, 120, (wchar_t*)string, (int)text);
 	PrintString(wchar_string, (char*)XAI_PLUGIN, (char*)mode);
 }
 
-int customMessage(const char *msg_string, int data, const char *mode)
+void customMessage(const char *msg_string, int data, const char *mode)
 {
 	int string = RetrieveString(msg_string, (char*)XAI_PLUGIN);	
 	swprintf_(wchar_string, 120, (wchar_t*)string, (int)data);
 	PrintString(wchar_string, (char*)XAI_PLUGIN, (char*)mode);
 }
 
-int customMessage2(const char *msg_string, const char *msg_string2, const char *mode)
+void customMessage2(const char *msg_string, const char *msg_string2, const char *mode)
 {
 	char status_char[120];	
 	int string = RetrieveString(msg_string, (char*)XAI_PLUGIN);
@@ -365,10 +311,10 @@ int customMessage2(const char *msg_string, const char *msg_string2, const char *
 
 int create_rifs()
 {
-	int fd, string, usb_port = 0;
+	int fd, usb_port = 0;
 	CellFsStat statinfo;
-	uint64_t read;
 	CellFsDirent dir;
+	uint64_t read;
 	char USB[120], rap_file[120];
 	char rif_file[120], contentID[36];
 
@@ -601,7 +547,7 @@ int getAccountID()
 	
 	sprintf_(entry, SETTING_ACCOUNTID, userID, NULL);
 
-	for (int i = 0; i < 0x10000 - strlen(entry); i++)
+	for (int i = 0; i < 0x10000 - (int)strlen(entry); i++)
 	{
 		if (!strcmp((char *)dump + i, entry))	
 		{
@@ -615,7 +561,7 @@ int getAccountID()
 					uint32_t valueOffset = i;
 
 					uint8_t account_id[0x10];
-					char acc_char[16], output[120];
+					char acc_char[16];
 
 					memcpy(&account_id, (uint8_t *)(dump + (uint32_t)valueOffset + 7), 16);
 
@@ -667,7 +613,7 @@ void changeAccountID(int mode, int force)
 			showMessage("msg_accountid_set_fake", (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
 
 		wait(3);
-		rebootXMB(SYS_SOFT_REBOOT);
+		rebootXMB(SYS_HARD_REBOOT);
 	}
 	else if(ret == 1)		
 		showMessage("msg_accountid_not_empty", (char*)XAI_PLUGIN, (char*)TEX_WARNING);
@@ -733,7 +679,6 @@ void backup_license()
 void remove_license()
 {
 	CellFsStat stat;
-	int ret;
 	char act[120];
 
 	close_xml_list();
@@ -755,7 +700,6 @@ void remove_license()
 int create_syscalls()
 {
 	CellFsStat stat;
-	uint64_t offset;
 
 	create_cfw_syscalls();
 
@@ -772,16 +716,15 @@ int create_syscalls()
 int dump_lv(int lv)
 {
 	int final_offset, ret;
-	int mem = 0, max_offset = 0x40000;
-	int fd, usb_port, fseek_offset = 0, start_offset = 0;
+	int mem = 0;
+	int fd, usb_port, fseek_offset = 0;
 
 	char dump_file_path[120], lv_file[120];
 	char status[120];
 	const char *dumping, *lv_dump, *lv_dumped, *lv_error;
 
 	uint8_t platform_info[0x18];
-	uint64_t nrw, seek, offset_dumped;
-	CellFsStat st;	
+	uint64_t nrw, offset_dumped, start_offset = 0, max_offset = 0x40000;
 
 	// HEN
 	if(!is_hen())
@@ -884,7 +827,7 @@ int dump_lv(int lv)
 			}
 
 			// Done dumping
-			if(max_offset == final_offset)
+			if(max_offset == (uint64_t)final_offset)
 				break;
 
 			fseek_offset += 0x40000;
@@ -931,6 +874,8 @@ int dumpERK(int mode)
 
 	customMessage("msg_dumping_status", (mode == ERK ? "ERK" : "METLDR"), TEX_INFO2);
 	dumperk(mode);	
+
+	return 0;
 }
 
 //	From sguerrini97's dump_sysrom
@@ -938,7 +883,6 @@ int dumpERK(int mode)
 int dump_sysrom()
 {
 	char file[120], usb_file[120];
-	int string;
 	int fd, fd_usb, usb_port;
 
 	CellFsStat stat;
@@ -993,7 +937,7 @@ int dump_sysrom()
 
 		cellFsChmod(usb_file, 0666);
 
-		dump = (uint8_t *)__malloc(0x40000);
+		dump = (uint8_t *)_malloc(0x40000);
 
 		if(!dump)
 			goto error;	
@@ -1103,6 +1047,8 @@ int removeSysHistory()
 	}		
 
 	showMessage("msg_syscalls_disabled", (char*)XAI_PLUGIN, (char*)TEX_SUCCESS);
+
+	return 0;
 }
 
 /*void checkSyscall(int syscall)
@@ -1242,7 +1188,43 @@ int save_ps2_fan_cfg(int mode)
 	cobra_config->ps2_speed = mode;   
     cobra_write_config(cobra_config);
 
+	// Creates custom fan.bin file (By kozarovv and mrjared)
+	cellFsMkdir("/dev_hdd0/vm", 0777);
+	cellFsMkdir("/dev_hdd0/vm/ne", 0777);
+	cellFsMkdir("/dev_hdd0/vm/gx", 0777);
+
+	uint8_t fan_bin[3];
+	memset(fan_bin, 0, 3);
+	fan_bin[2] = mode;
+	saveFile(FAN_BIN_NE_FILE, fan_bin, 3);
+	saveFile(FAN_BIN_GX_FILE, fan_bin, 3);
+
 	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_PS2_FAN_SPEED, mode);
+
+	return 0;
+}
+
+int save_ps2_dynamic_cfg(int mode)
+{
+	// HEN
+	if(!is_hen())
+	{
+		showMessage("msg_hen_notsupported_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
+	}
+	
+	// Creates custom fan.bin file (By kozarovv and mrjared)
+	cellFsMkdir("/dev_hdd0/vm", 0777);
+	cellFsMkdir("/dev_hdd0/vm/ne", 0777);
+	cellFsMkdir("/dev_hdd0/vm/gx", 0777);
+
+	uint8_t fan_bin[3];
+	memset(fan_bin, 0, 3);
+	fan_bin[0] = 1;
+	fan_bin[1] = mode;
+	fan_bin[2] = 0;
+	saveFile(FAN_BIN_NE_FILE, fan_bin, 3);
+	saveFile(FAN_BIN_GX_FILE, fan_bin, 3);
 
 	return 0;
 }
@@ -1404,7 +1386,7 @@ void toggle_gameboot()
 	customMessage2("msg_gameboot_status", ((int)cobra_config->gameboot_mode ? "msg_lower_enabled" : "msg_lower_disabled"), TEX_SUCCESS);
 }
 
-/*void toggle_epilepsy_warning()
+void toggle_epilepsy_warning()
 {
 	if(!check_cobra_version())
 	{
@@ -1426,7 +1408,7 @@ void toggle_gameboot()
 	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_EPILEPSY_WARNING, (int)cobra_config->epilepsy_warning);
 
 	customMessage2("msg_epilepsy_warning_status", ((int)cobra_config->epilepsy_warning ? "msg_lower_enabled" : "msg_lower_disabled"), TEX_SUCCESS);
-}*/
+}
 
 void toggle_coldboot_animation()
 {
@@ -1492,7 +1474,7 @@ void clean_log()
 
 void log_klic()
 {	
-	int ret = -1, status;
+	int ret = -1;
 	ret = load_video_rec_plugin();
 	ret = _videorec_export_function_klicensee();
 	customMessage2("msg_klicensee_status", (ret == CELL_OK ? "msg_lower_enabled" : "msg_lower_disabled"), TEX_SUCCESS);
@@ -1516,8 +1498,6 @@ void enable_recording()
 
 void enable_screenshot()
 {
-	setNIDfunc(plugin_SetInterface2, "paf", 0x3F7CB0BF);
-
 	((int*)getNIDfunc("vshmain", 0x981D7E9F))[0] -= 0x2C;
 	showMessage("msg_screenshots_enabled", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
 }		
@@ -1535,9 +1515,9 @@ void override_sfo()
 int toggle_coldboot()
 {
 	CellFsStat stat, stat_usb;
-	int found_external_coldboot = 0, fd;	
+	int found_external_coldboot = 0, fd = 0;	
 	char usb_file[120];
-	uint64_t read;
+	//uint64_t read;
 
 	const char *coldboot_usb = "/dev_usb%03d/coldboot.raf";
 	const char *coldboot_file = "/dev_blind/vsh/resource/coldboot.raf";
@@ -1655,7 +1635,7 @@ void toggle_dlna()
 		showMessage("msg_dlna_set_flag_error", (char*)XAI_PLUGIN, (char*)TEX_ERROR);
 	else
 	{
-		Job_start(0,(dlna == 1) ? handler1_enabled : handler1_disabled, 0, -1, -1, handler2);
+		Job_start(0, (dlna == 1) ? handler1_enabled : handler1_disabled, 0, -1, -1, handler2);
 		explore_interface->DoUnk6("reload_category photo", 0, 0);
 		explore_interface->DoUnk6("reload_category music", 0, 0);
 		explore_interface->DoUnk6("reload_category video", 0, 0);
@@ -1689,7 +1669,7 @@ bool enable_hvdbg()
 	}
 
 	uint8_t data;
-	int ret = update_mgr_read_eeprom(0x48CF0, &data);
+	int ret = update_mgr_read_eprom(0x48CF0, &data);
 
 	if(ret != 0)
 	{
@@ -1699,10 +1679,10 @@ bool enable_hvdbg()
 
 	if(data == 0xFF)
 	{
-		ret = update_mgr_write_eeprom(0x48CF0, 0x00);
+		ret = update_mgr_write_eprom(0x48CF0, 0x00);
 
 		for(int i = 0x48CF1; i < 0x48D00; i++)		
-			ret = update_mgr_write_eeprom(i, 0xCC);			
+			ret = update_mgr_write_eprom(i, 0xCC);			
 		
 		if(!ret)
 			customMessage2("msg_hvproc_status", "msg_lower_enabled", (char*)TEX_SUCCESS);
@@ -1712,10 +1692,10 @@ bool enable_hvdbg()
 
 	if(data == 0x00)
 	{
-		ret = update_mgr_write_eeprom(0x48CF0, 0xFF);
+		ret = update_mgr_write_eprom(0x48CF0, 0xFF);
 
 		for(int i = 0x48CF1; i < 0x48D00; i++)		
-			ret = update_mgr_write_eeprom(i, 0xFF);		
+			ret = update_mgr_write_eprom(i, 0xFF);		
 
 		if(!ret)
 			customMessage2("msg_hvproc_status", "msg_lower_disabled", (char*)TEX_SUCCESS);
@@ -1736,7 +1716,7 @@ void backup_registry()
 	if(ret != CELL_OK)
 	{
 		log("mount(dev_flash2)\n");
-		ret = cellFsUtilMount("CELL_FS_IOS:BUILTIN_FLSH2", "CELL_FS_FAT", "/dev_flash2", 0, 0, 0, 0);
+		ret = cellFsUtilityMount("CELL_FS_IOS:BUILTIN_FLSH2", "CELL_FS_FAT", "/dev_flash2", 0, 0, 0, 0);
 
 		if(ret != CELL_OK)		
 		{
@@ -1755,7 +1735,7 @@ void backup_registry()
 	}
 
 	int fdb;
-	char backup[120], output[120];
+	char backup[120];
 
 	usb_port = get_usb_device();
 
@@ -1796,7 +1776,6 @@ void backup_registry()
 
 void usb_firm_loader()
 {	
-	CellFsStat sb;
 	char usb[120];
 	int usb_port;
 
@@ -1811,9 +1790,6 @@ void usb_firm_loader()
 
 	uint64_t dev_flash  = 0x5F666C6173680000ULL; // '_flash..'
 	uint64_t dev_flashO = 0x5F666C6173684F00ULL; // '_flashO.'
-	uint64_t dev_hdd0   = 0x5F68646430000000ULL;
-	uint64_t dev_hdd1   = 0x5F68646431000000ULL;
-	uint64_t dev_hdd2   = 0x5F68646432000000ULL;
 	uint64_t dev_usb000 = 0x5F75736230303000ULL;
 	uint64_t dev_usb001 = 0x5F75736230303100ULL;
 	uint64_t dev_usb002 = 0x5F75736230303200ULL;
@@ -1925,7 +1901,6 @@ bool patch_laidpaid_sserver2()
 // Decrypt EID2
 bool load_iso_root(void *iso_key, void *iso_iv)
 {	
-	CellFsStat statinfo;
 	char eid_root_key[120];
 	int root_fd, usb_port;
 	uint64_t nread;	
@@ -2440,10 +2415,10 @@ void rebuild_db()
 	rebootXMB(SYS_LV2_REBOOT);
 }
 
-static int fs_check()
+/*static int fs_check()
 {
 	int ret;
-	ret = cellFsUtilMount("CELL_FS_UTILITY:HDD0", "CELL_FS_SIMPLEFS", "/dev_simple_hdd0", 0, 0, 0, 0);
+	ret = cellFsUtilityMount("CELL_FS_UTILITY:HDD0", "CELL_FS_SIMPLEFS", "/dev_simple_hdd0", 0, 0, 0, 0);
 
 	if(ret != CELL_OK)
 	{
@@ -2476,20 +2451,20 @@ static int fs_check()
 			cellFsClose(fd);
 		}
 
-		cellFsUtilUnMount("/dev_simple_hdd0", 0);
+		cellFsUtilUmount("/dev_simple_hdd0", 0);
 
 		return CELL_OK;
 	}
-}
+}*/
 
 int read_recovery_mode_flag(void *data)
 {	
-	return update_mgr_read_eeprom(RECOVERY_MODE_FLAG_OFFSET, data);
+	return update_mgr_read_eprom(RECOVERY_MODE_FLAG_OFFSET, data);
 }
 
 int set_recovery_mode_flag(uint8_t value)
 {
-	return update_mgr_write_eeprom(RECOVERY_MODE_FLAG_OFFSET, value);
+	return update_mgr_write_eprom(RECOVERY_MODE_FLAG_OFFSET, value);
 }
 
 void recovery_mode()
@@ -2519,7 +2494,7 @@ void recovery_mode()
 		ret = set_recovery_mode_flag(0x00);
 		showMessage((ret == 0) ? "msg_recovery_mode_enabled" : "msg_write_eprom_failed", (char *)XAI_PLUGIN, (ret == 0) ? (char *)TEX_SUCCESS : (char *)TEX_ERROR);
 		wait(3);
-		rebootXMB(SYS_SOFT_REBOOT);
+		rebootXMB(SYS_HARD_REBOOT);
 	}
 
 	if(data == 0x00)
@@ -2531,12 +2506,12 @@ void recovery_mode()
 
 int read_product_mode_flag(void *data)
 {
-	return update_mgr_read_eeprom(PRODUCT_MODE_FLAG_OFFSET, data);
+	return update_mgr_read_eprom(PRODUCT_MODE_FLAG_OFFSET, data);
 }
 
 static int set_product_mode_flag(uint8_t value)
 {
-	return update_mgr_write_eeprom(PRODUCT_MODE_FLAG_OFFSET, value);
+	return update_mgr_write_eprom(PRODUCT_MODE_FLAG_OFFSET, value);
 }
 
 int service_mode()
@@ -2829,8 +2804,6 @@ int activate_account()
 	
 	if(!ret)
 	{
-		int fd;		
-		uint64_t size;
 		char full_path[120], exdata_dir[120], hen_path[120];
 		CellFsStat stat;
 
@@ -2897,7 +2870,7 @@ int activate_account()
 void check_8th_spe()
 {
 	uint8_t value = 0;	
-	update_mgr_read_eeprom(SPE_8TH_EEPROM_OFFSET, &value);
+	update_mgr_read_eprom(SPE_8TH_EEPROM_OFFSET, &value);
 
 	log("SPE result: %02x\n", (int)value);
 
@@ -2915,9 +2888,9 @@ void toggle_8th_spe()
 
 	uint8_t current_value = 0, new_value = 0;	
 
-	update_mgr_read_eeprom(SPE_8TH_EEPROM_OFFSET, &current_value);
-	update_mgr_write_eeprom(SPE_8TH_EEPROM_OFFSET, (current_value == 0x06) ? 0x07 : 0x06);
-	update_mgr_read_eeprom(SPE_8TH_EEPROM_OFFSET, &new_value);
+	update_mgr_read_eprom(SPE_8TH_EEPROM_OFFSET, &current_value);
+	update_mgr_write_eprom(SPE_8TH_EEPROM_OFFSET, (current_value == 0x06) ? 0x07 : 0x06);
+	update_mgr_read_eprom(SPE_8TH_EEPROM_OFFSET, &new_value);
 
 	log("SPE result: %02x\n", (int)new_value);
 
@@ -3188,7 +3161,7 @@ void setLed(const char *mode)
 	return 1;
 }*/
 
-int toggle_trophy_unlocker()
+int toggle_trophy_unlocker(int mode)
 {
 	int ret = 1;
 	int slot = 0, load_slot = 0;
@@ -3237,10 +3210,10 @@ int toggle_trophy_unlocker()
 		return 1;
 	}
 
-	if(cobra_load_vsh_plugin(load_slot, TROPHYUNLOCKER_SRPX, NULL, 0) >= 0)
+	if(cobra_load_vsh_plugin(load_slot, TROPHYUNLOCKER_SRPX, &mode, sizeof(mode)) >= 0)
 	{
 		log("trophyUnlocker.sprx plugin loaded in slot %d\n", load_slot);
-		customMessage2("msg_trun_sprx_status", "msg_lower_enabled", TEX_SUCCESS);
+		//customMessage2("msg_trun_sprx_status", "msg_lower_enabled", TEX_SUCCESS);
 		return 0;
 	}
 
@@ -3300,7 +3273,7 @@ void spoof_idps()
 	int ret = sys_ss_get_console_id(idps);
 
 	if(ret == EPERM)
-		ret = GetIDPS(idps);
+		ret = cellSsAimGetDeviceId(idps);
 
 	if(ret != CELL_OK)
 	{
@@ -3386,7 +3359,7 @@ void spoof_psid()
 	int ret = sys_ss_get_open_psid(psid);
 
 	if(ret == EPERM)
-		ret = GetPSID(psid);
+		ret = cellSsAimGetOpenPSID(psid);
 
 	if(ret != CELL_OK)
 	{
@@ -3522,7 +3495,6 @@ void getPS3Lifetime()
 
 int toggle_npsignin_lck()
 {
-	uint64_t write;
 	CellFsStat stat;
 
 	mount_dev_blind();
@@ -3691,10 +3663,10 @@ void sm_error_log()
 void get_token_seed()
 {	
 	char i, file_path[120];
-	int usb_port, string;
+	int usb_port;
 	CellFsStat stat;
 	uint8_t value, seed[TOKEN_SIZE], token[TOKEN_SIZE];	
-	uint64_t auth_check_offset, um_read_eeprom_offset;
+	uint64_t auth_check_offset = 0, um_read_eeprom_offset = 0;
 
 	// HEN
 	if(!is_hen())
@@ -3816,7 +3788,6 @@ error:
 
 void check_ros_bank()
 {
-	int string;
 	uint8_t value = 0;	
 	uint64_t auth_check_offset, um_read_eeprom_offset;
 
@@ -3984,8 +3955,6 @@ int spoof_mac()
 	uint8_t gelic_buffer[0x13];
 	uint8_t new_mac_buffer[0x12];
 
-	uint64_t start_offset = 0x8000000000070000ULL;
-	uint64_t end_offset = 0x8000000000400000ULL;
 	uint64_t current_mac, new_mac;
 	uint64_t offset;
 
@@ -4095,7 +4064,7 @@ void show_ids()
 	memset(idps, 0, 0x10);	
 
 	if(sys_ss_get_console_id(idps) == EPERM)
-		GetIDPS(idps);
+		cellSsAimGetDeviceId(idps);
 
 	sprintf_(idps_char1, "%02X%02X%02X%02X%02X%02X%02X%02X", idps[0], idps[1], idps[2], idps[3], idps[4], idps[5], idps[6], idps[7]);
 	sprintf_(idps_char2, "%02X%02X%02X%02X%02X%02X%02X%02X", idps[8], idps[9], idps[10], idps[11], idps[12], idps[13], idps[14], idps[15]);
@@ -4109,7 +4078,7 @@ void show_ids()
 	memset(psid, 0, 0x10);
 
 	if(sys_ss_get_open_psid(psid) == EPERM)
-		GetPSID(psid);	
+		cellSsAimGetOpenPSID(psid);	
 
 	sprintf_(psid_char1, "%02X%02X%02X%02X%02X%02X%02X%02X", psid[0], psid[1], psid[2], psid[3], psid[4], psid[5], psid[6], psid[7]);
 	sprintf_(psid_char2, "%02X%02X%02X%02X%02X%02X%02X%02X", psid[8], psid[9], psid[10], psid[11], psid[12], psid[13], psid[14], psid[15]);
@@ -4155,11 +4124,11 @@ int dump_ids()
 
 	// IDPS
 	if(sys_ss_get_console_id(idps) == EPERM)
-		GetIDPS(idps);	
+		cellSsAimGetDeviceId(idps);	
 
 	// PSID
 	if(sys_ss_get_open_psid(psid) == EPERM)
-		GetPSID(psid);
+		cellSsAimGetOpenPSID(psid);
 	
 	// MAC		
 	lv2_gelic_eurus_control(0x103F, gelic_buffer, 0x13);	
@@ -4224,7 +4193,6 @@ int patch_xreg_value(char *str, uint32_t value, int size)
 {
 	uint16_t offsetString = 0;
 
-	char string[256];
 	uint8_t *dump = (uint8_t *)_malloc(XREGISTRY_FILE_SIZE);
 
 	if(readFile(XREGISTRY_FILE, dump, XREGISTRY_FILE_SIZE))
@@ -4233,7 +4201,7 @@ int patch_xreg_value(char *str, uint32_t value, int size)
 		return 1;
 	}
 
-	for (int i = 0; i < 0x10000 - strlen(str); i++)
+	for (int i = 0; i < 0x10000 - (int)strlen(str); i++)
 	{
 		if (!strcmp((char *)dump + i, str))	
 		{
@@ -4258,7 +4226,7 @@ int patch_xreg_value(char *str, uint32_t value, int size)
 
 void set_region(int region, uint32_t dvd_region, uint32_t bd_region, uint32_t tvSystem)
 {
-	int region_str;
+	int region_str = 0;
 	char conv_str[120];	
 	xSettingRegistryGetInterface()->saveRegistryRegion(region);
 	xSettingBdvdGetInterface()->SetDvdRegionCode(dvd_region);
@@ -4358,54 +4326,143 @@ void check_region_values()
 
 void Fix_CBOMB()
 {
-	#define DATE_1970_01_01	0x00DCBFFEFF2BC000ULL
 	#define DATE_2000_01_01	0x00E01D003A63A000ULL	
-	#define DATE_2025_04_20 0x00E2F336D7264000ULL
+	#define DATE_2025_04_20 0x00E2F336D7264000ULL	
 
+	int ret;
 	uint64_t clock, diff;
 	uint64_t sec, nsec;
-	uint64_t a1, a2;
 	uint64_t currentTick;	
-
-	uint64_t timedata = 0x00E2F322B94EE000ULL - DATE_2000_01_01;
-
 	uint64_t patchedDate = DATE_2025_04_20;
 
 	_cellRtcGetCurrentTick(&currentTick);
-	{ system_call_4(0x362, 0x3002, 0, (uint64_t)&a1, (uint64_t)&a2); }
 
-	if(currentTick < DATE_2025_04_20)
+	ret = sys_ss_secure_rtc_set_rtc();
+	if(ret)
+		goto error;	
+
+	_cellRtcSetCurrentTick((currentTick < DATE_2025_04_20 ? &patchedDate : &currentTick));		
+	ret = _cellRtcSetCurrentSecureTick((currentTick < DATE_2025_04_20 ? &patchedDate : &currentTick));		
+	if(ret)
+		goto error;
+
+	ret = sys_time_get_rtc(&clock);	
+	if(ret || !clock)
+		goto error;
+
+	sysGetCurrentTime(&sec, &nsec);	
+	diff = sec - clock;
+	//vshmain_25CE539E(&diff);
+	xSettingDateGetInterface()->SaveDiffTime(diff);
+
+	showMessage("msg_rtc_fixed", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
+	buzzer(SINGLE_BEEP);
+	return;
+
+error:
+	buzzer(TRIPLE_BEEP);
+	log("Error: 0x%08X\n", (int)ret);
+	showMessage("msg_rap2bin_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+	notify("Error: 0x%08X", (int)ret);
+	return;
+}
+
+int toggle_demo()
+{
+	CellFsStat stat;
+
+	// CFW 4.92
+	uint32_t original = 0x7FC307B4;
+	uint32_t patch = 0x38600000;	
+	uint32_t offset_cex = 0x255910;
+	uint32_t offset_dex = 0x25D138;
+
+	if(!check_cobra_version())
 	{
-		_cellRtcSetCurrentTick(&patchedDate);	
-		sysGetCurrentTime(&sec, &nsec);	
-		sys_time_get_rtc(&clock);		
-		diff = sec - clock;
-		xSettingDateGetInterface()->SaveDiffTime(diff);
+		showMessage("msg_syscall8_disabled", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
 	}
 
-	if(!a1)
-		sys_ss_secure_rtc(timedata);
+	uint32_t vsh_pid = sys_process_getpid();
 
-	{ system_call_4(0x362, 0x3002, 0, (uint64_t)&a1, (uint64_t)&a2); }
-	_cellRtcGetCurrentTick(&currentTick);
-	uint64_t result_time2 = (currentTick - DATE_2000_01_01);
-	
-	uint64_t rtc_clock = a1 * 1000000 + DATE_2000_01_01;
-
-	if(rtc_clock < currentTick)
-	{		
-		sys_ss_secure_rtc(result_time2);
-		showMessage("msg_rtc_fixed", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);
-	}
-	else if(rtc_clock > currentTick)
+	if(!vsh_pid)
 	{
-		sysSetCurrentTime(((rtc_clock - DATE_1970_01_01) / 1000000), 0);
-		sysGetCurrentTime(&sec, &nsec);	
-		sys_time_get_rtc(&clock);		
-		diff = sec - clock;
-		xSettingDateGetInterface()->SaveDiffTime(diff);
-		showMessage("msg_rtc_date_fixed", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);		
+		showMessage("msg_sort_games_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
 	}
+
+	cobra_read_config(cobra_config);
+	cobra_config->demo_c00_mode = !cobra_config->demo_c00_mode;
+
+	if(ps3mapi_write_process_memory(vsh_pid, (!cellFsStat(VSH_SELF_CEX2, &stat) ? offset_dex : offset_cex), (cobra_config->demo_c00_mode ? &original : &patch), sizeof(patch))) 
+	{
+		showMessage("msg_sort_games_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
+	}
+
+    cobra_write_config(cobra_config);
+
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_C00_DEMO, (int)cobra_config->demo_c00_mode);
+
+	customMessage2("msg_toggle_demo", ((int)cobra_config->demo_c00_mode ? "msg_disabled" : "msg_enabled"), TEX_SUCCESS);
+
+	return 0;
+}
+
+int toggle_screenshot()
+{
+	CellFsStat stat;
+	int ret = 0;
+
+	// CFW 4.92
+	uint32_t original = 0x7C004828;
+	uint32_t patch = 0x38000001;	
+	uint32_t offset1_cex = 0x195354;
+	uint32_t offset2_cex = 0x196F90;
+	uint32_t offset1_dex = 0x19C3A0;
+	uint32_t offset2_dex = 0x19DFDC;
+
+	if(!check_cobra_version())
+	{
+		showMessage("msg_syscall8_disabled", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
+	}	
+
+	uint32_t vsh_pid = sys_process_getpid();
+
+	if(!vsh_pid)
+	{
+		showMessage("msg_sort_games_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
+	}
+
+	cobra_read_config(cobra_config);
+	cobra_config->screenshots_mode = !cobra_config->screenshots_mode;
+
+	ret = ps3mapi_write_process_memory(vsh_pid, (!cellFsStat(VSH_SELF_CEX2, &stat) ? offset1_dex : offset1_cex), (cobra_config->screenshots_mode ? &original : &patch), sizeof(patch));
+	ret |= ps3mapi_write_process_memory(vsh_pid, (!cellFsStat(VSH_SELF_CEX2, &stat) ? offset2_dex : offset2_cex), (cobra_config->screenshots_mode ? &original : &patch), sizeof(patch));
+	if(ret)
+	{
+		showMessage("msg_sort_games_error", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
+		return 1;
+	}
+
+    cobra_write_config(cobra_config);
+
+	system_call_3(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_INGAME_SCREENSHOTS, (int)cobra_config->screenshots_mode);
+
+	customMessage2("msg_toggle_screenshot", ((int)cobra_config->screenshots_mode ? "msg_disabled" : "msg_enabled"), TEX_SUCCESS);
+
+	return 0;
+}
+
+void reset_date()
+{
+	uint64_t diff = 0;
+	xSettingDateGetInterface()->SaveDiffTime(diff);
+
+	// msg_rtc_date_erased: Not added in RCO
+	showMessage("msg_rtc_date_erased", (char *)XAI_PLUGIN, (char *)TEX_SUCCESS);		
 
 	buzzer(SINGLE_BEEP);
 }
@@ -4481,7 +4538,7 @@ int decryptEncryptedISO(const char *isoFile)
 	memcpy(&sectors, &region0[0], 4);
 	sectors = (sectors * 2) - 1;
 	
-	for(int i = 0; i < sectors; i++)
+	for(int i = 0; i < (int)sectors; i++)
 	{
 		discRegionInfo[i].isEncrypted = (i % 2 == 1);
 		discRegionInfo[i].first_address_region = (i == 0 ? 0LL : discRegionInfo[i - 1].last_address_region + 1LL); //(i == 0 ? 0LL : region_info_[i - 1].regions_last_addr + 1LL);
@@ -4494,7 +4551,7 @@ int decryptEncryptedISO(const char *isoFile)
 	uint32_t *buffer = (uint32_t *)_malloc(0x8000);
 
 	int lba = 0;
-	for(int i = 0; i < sectors; i++)
+	for(int i = 0; i < (int)sectors; i++)
 	{	
 		if(discRegionInfo[i].isEncrypted)
 		{			
@@ -4623,7 +4680,7 @@ void show_bd_info()
 {
 	system_info hwinfo;
 	int fd, str_country, str_mobo, str_bd;
-	char conv_str1[120], conv_str2[120], conv_str3[120], conv_str4[120], bd_model[40];	
+	char conv_str1[120], conv_str2[120], conv_str3[120], bd_model[40];	
 	uint8_t pscode[8], buf[0x38];
 	uint8_t idps[0x10];
 
@@ -4783,13 +4840,12 @@ int rap2bin()
 	char content_id[0x24];
 	char str_buffer[120], exdata[120], rap_bin_file[120];
 
-	int string;
 	int bin_file_exist, found, count = 0;
 	int MAGIC_NUMBER = 0xFAF0FAF0;
-	int file, fd, file2, usb_port, fileSize, rap_files;
+	int file, fd = 0, file2 = 0, usb_port;
 
-	uint8_t rap_value[0x10], buffer[0x50], check_value[0x50];
-	uint64_t read_dir, write, read, seek;
+	uint8_t rap_value[0x10], buffer[0x50];
+	uint64_t read_dir, write;
 	CellFsDirent dir;		
 	CellFsStat stat;
 	
@@ -4902,7 +4958,6 @@ error:
 int bin2rap()
 {
 	char content_id[0x24], rap_file[120], exdata[120];
-	int string;
 	int rap_bin_fd, fileSize, rap_files, usb_port;
 	int MAGIC_NUMBER = 0xFAF0FAF0;
 	int exported_files = 0;
@@ -4999,9 +5054,7 @@ error:
 void toggle_xmb_waves()
 {
 	CellFsStat stat;
-	char status_char[120];
 	int ret = 1, ret_ori, ret_mod;
-	int string, status;
 	char status2[120];
 
 	mount_dev_blind();

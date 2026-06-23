@@ -3,7 +3,7 @@ XAI Plugin - Original Source by mysis [https://www.psx-place.com/threads/custom-
 
 Remember that videorec.sprx and xai_plugin.sprx must be signed after compiled
 
-This version of xai_plugin was modified to be used on **CFW 4.92 Evilnat**
+This version of xai_plugin was modified to be used on **CFW Evilnat**
 
 Repositories used:
 [sguerrini97's setup_flash_for_otheros](https://github.com/sguerrini97/psl1ghtv2_ports/tree/master/setup_flash_for_otheros)
@@ -328,7 +328,7 @@ Service Tools > Led Tools
 Updates
 • Show XAI Version: Shows the current version of xai_plugin
 • xai_plugin: Downloads the latest update of xai plugin
-• CFW 4.92 Fixes: Download fixes for modules ONLY for CFW 4.92 Evilnat
+• CFW 4.93 Fixes: Download fixes for modules ONLY for CFW 4.93 Evilnat
 • PS2 EMUs Cobra: Downloads the latest update of PS1/PS2 EMUs Cobra
 • PS2 EMUs MOD: Downloads the latest update of PS1/PS2 EMUs MOD by mrjaredbeta and kozarovv
 ```

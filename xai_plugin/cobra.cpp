@@ -67,7 +67,7 @@ int sys_get_version2(uint16_t *version)
 
 int cobra_load_vsh_plugin(int slot, char *path, void *arg, uint32_t arg_size)
 {
-	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, slot, (uint64_t)(uint32_t)path, (uint64_t)(uint32_t)arg, arg_size);
+	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_LOAD_VSH_PLUGIN, slot, (uint64_t)(uint32_t)path, (uint64_t)arg, arg_size);
 	return_to_user_prog(int);
 }
 
@@ -81,6 +81,20 @@ int ps3mapi_get_vsh_plugin_info(unsigned int slot, char *name, char *filename)
 {
 	system_call_5(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_VSH_PLUGIN_INFO, (uint64_t)slot, (uint64_t)name, (uint64_t)filename);	
 	return_to_user_prog(int);
+}
+
+int ps3mapi_write_process_memory(sys_pid_t pid, uint64_t address, void* buf, int size)
+{
+    system_call_6(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_SET_PROC_MEM, 
+                  (uint64_t)pid, (uint64_t)address, (uint64_t)buf, (uint64_t)size);
+    return_to_user_prog(int);
+}
+
+int ps3mapi_get_process_memory(sys_pid_t pid, uint64_t address, void* buf, int size)
+{
+    system_call_6(SC_COBRA_SYSCALL8, SYSCALL8_OPCODE_PS3MAPI, PS3MAPI_OPCODE_GET_PROC_MEM, 
+                  (uint64_t)pid, (uint64_t)address, (uint64_t)buf, (uint64_t)size);
+    return_to_user_prog(int);
 }
 
 void toggle_plugins()
@@ -289,7 +303,6 @@ void toggle_external_cobra()
 
 int toggle_cobra_version()
 {
-	char fw_type[16];
 	int ret = 1;
 	CellFsStat statinfo;
 

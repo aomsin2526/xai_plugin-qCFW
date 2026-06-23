@@ -18,7 +18,7 @@
 #include "eeprom.h"
 
 static uint64_t um_ndpmo_eeprom_offset;
-static uint64_t dm_patch1_offset, dm_patch2_offset, dm_patch3_offset, dm_patch4_offset;
+static uint64_t dm_patch1_offset;
 
 static patches_eeprom patch_hv_checks[5] =
 {	
@@ -107,7 +107,7 @@ static void restore_patches()
 void read_qa_flag()
 {
 	uint8_t value = 0;
-	update_mgr_read_eeprom(QA_FLAG_OFFSET, &value);
+	update_mgr_read_eprom(QA_FLAG_OFFSET, &value);
 
 	showMessage((!value) ? "msg_qa_check_enabled" : "msg_qa_check_disabled", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 }
@@ -231,7 +231,7 @@ int set_qa_flag(uint8_t value)
 		return 4;
 	}	
 
-	update_mgr_write_eeprom(QA_FLAG_OFFSET, (value) ? 0x00 : 0xFF); 
+	update_mgr_write_eprom(QA_FLAG_OFFSET, (value) ? 0x00 : 0xFF); 
 
 	restore_patches();
 

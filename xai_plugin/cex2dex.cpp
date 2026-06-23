@@ -16,7 +16,6 @@
 #include "qa.h"
 #include "erk.h"
 #include "cex2dex.h"
-#include "qcfw.h"
 
 static wchar_t wchar_string[120]; // Global variable for swprintf
 
@@ -293,7 +292,7 @@ int receive_eid_idps(int eid, uint8_t output[0x10])
 
 	disc_size = disc_info.sector_size * disc_info.total_sectors;
 	uint32_t buf_size = disc_info.sector_size*1;
-	uint8_t* rb = (unsigned char *) __memalign(128, buf_size);
+	uint8_t* rb = (unsigned char *) _memalign(128, buf_size);
 	memset(rb, 0, buf_size);	
 
 	if(disc_size)
@@ -301,7 +300,7 @@ int receive_eid_idps(int eid, uint8_t output[0x10])
 		if(sys_storage_read2(dev_id, start_flash_sector, 1, rb, &readlen, FLASH_FLAGS))
 		{
 			sys_storage_close(dev_id);
-			__free(rb);
+			_free(rb);
 			return 1;
 		}		
 		
@@ -312,7 +311,7 @@ int receive_eid_idps(int eid, uint8_t output[0x10])
 	}
 	
 	sys_storage_close(dev_id);
-	__free(rb);
+	_free(rb);
 
 	return 0;
 }
@@ -320,7 +319,6 @@ int receive_eid_idps(int eid, uint8_t output[0x10])
 int getTargetID(int mode)
 {
 	int dev_id, targetid, string;
-	wchar_t wchar_string[120];
 
 	uint8_t idps[IDPS_SIZE];
 	uint8_t read_buffer[0x200];	
@@ -345,7 +343,7 @@ int getTargetID(int mode)
 	if(mode)
 	{
 		targetid = read_buffer[0x75];
-		__free(read_buffer);
+		_free(read_buffer);
 		return targetid;
 	}
 
@@ -359,7 +357,7 @@ int getTargetID(int mode)
 		(uint8_t)idps[5], 
 		(idps[5] == 0x81 ? (int)"Decr" : (idps[5] == 0x82 ? (int)"Debug" : (int)"Retail")));
 
-	__free(read_buffer);
+	_free(read_buffer);
 
 	PrintString(wchar_string, (char*)XAI_PLUGIN, (char*)TEX_INFO2);
 
@@ -367,7 +365,7 @@ int getTargetID(int mode)
 
 error:
 	sys_storage_close(dev_id);
-	__free(read_buffer);
+	_free(read_buffer);
 	showMessage("msg_show_eid_target_error", (char *)XAI_PLUGIN, (char *)TEX_INFO2);	
 	return 1;
 }
@@ -376,8 +374,7 @@ void get_ps3_info()
 {
 	CellFsStat stat;
 
-	int dev_id, string;
-	wchar_t wchar_string[120];
+	int string;
 	char target[120], vsh[120], xmb_plugin[120], sysconf_plugin[120], idps_char[120];
 	uint8_t idps0[IDPS_SIZE], idps5[IDPS_SIZE];
 
@@ -486,7 +483,8 @@ static int checkCurrentKernel()
 	if(lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032322F30322FULL ||      // 2022/02/
 		lv2_peek(CEX_490_OFFSET) == CEX && lv2_peek(0x80000000002FCB58ULL) == 0x323032322F31322FULL || // 2022/12/
 		lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032332F31322FULL ||     // 2023/12/
-		lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032352F30322FULL)       // 2025/02/
+		lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032352F30322FULL ||     // 2025/02/
+		lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032362F30312FULL)       // 2026/02/
 	{
 		log("checkCurrentKernel(): CEX Kernel detected\n");		
 		return 1;
@@ -494,7 +492,8 @@ static int checkCurrentKernel()
 	else if(lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032332F30312FULL ||  // 2023/01/
 			lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032342F30322FULL ||  // 2024/02/
 			lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032352F30332FULL ||  // 2025/03/
-			lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323031392F30312FULL)	// 2019/01/  
+			lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323031392F30312FULL ||	// 2019/01/  
+			lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032362F30332FULL)	// 2026/03/  
 	{
 		log("checkCurrentKernel(): DEX Kernel detected\n");
 		return 2;
@@ -510,9 +509,8 @@ int dumpFlash()
 	char usb_file[120];
 	char dump_file[120];
 	char type[120];
-	wchar_t wchar_string[120];
 
-	int result, fd, fd_usb;
+	int fd, fd_usb;
 	int usb_port = 0;
 	int start_sector, sector_count;
 
@@ -528,9 +526,9 @@ int dumpFlash()
 
 	CellFsStat statinfo;		
 
-	int offset, max_offset;
+	uint64_t final_offset, max_offset;
 	int start_offset, fseek_offset;	
-	int final_offset, max_sector;	
+	int max_sector;	
 
 	int string = RetrieveString("msg_dumping_flash", (char*)XAI_PLUGIN);			
 	
@@ -645,7 +643,6 @@ int dumpFlash()
 
 	if(usb_port != -1)
 	{
-		offset = 0;
 		max_offset = 0x40000;
 
 		fseek_offset = 0;	
@@ -658,7 +655,7 @@ int dumpFlash()
 
 		cellFsChmod(usb_file, 0666);
 
-		dump = (uint8_t *)__malloc(0x40000);
+		dump = (uint8_t *)_malloc(0x40000);
 
 		if(!dump)
 			goto done;
@@ -672,13 +669,13 @@ int dumpFlash()
 
 			if(cellFsRead(fd, dump, 0x40000, &nr) != CELL_FS_SUCCEEDED)
 			{
-				__free(dump);				
+				_free(dump);				
 				goto done;
 			}
 
 			if(cellFsWrite(fd_usb, dump, 0x40000, &nrw) != SUCCEEDED)
 			{
-				__free(dump);				
+				_free(dump);				
 				goto done;
 			}
 
@@ -693,7 +690,7 @@ int dumpFlash()
 			memset(dump, 0, 0x40000);
 		}
 
-		__free(dump);
+		_free(dump);
 		cellFsClose(fd_usb);
 		cellFsUnlink(file);
 	}
@@ -737,8 +734,7 @@ static int setFlashKernelData(uint8_t _mode)
 	// 0 = CEX -> DEX
 	// 1 = DEX -> CEX
 
-	const char *msg, *result;
-	int dev_id, rr, string;
+	int dev_id, rr;
 	uint64_t start_flash_sector = 0x3E00;
 	uint32_t readlen = 0;
 	uint64_t disc_size = 0;
@@ -757,7 +753,7 @@ static int setFlashKernelData(uint8_t _mode)
 	disc_size = disc_info.sector_size * disc_info.total_sectors;
 
 	uint32_t buf_size = disc_info.sector_size * 3;
-	uint8_t* read_buffer = (unsigned char *) __memalign(128, buf_size);
+	uint8_t* read_buffer = (unsigned char *) _memalign(128, buf_size);
 	uint8_t found = 0, found_ported_dex = 0, found_retail = 0;
 	uint8_t ros = 0;
 
@@ -885,7 +881,7 @@ static int setFlashKernelData(uint8_t _mode)
 	}
 
 	sys_storage_close(dev_id);
-	__free(read_buffer);
+	_free(read_buffer);
 
 	return 1;
 }
@@ -896,8 +892,7 @@ void cex2dex(int mode)
 	// 1 = CEX
 
 	int dev_id, targetID, ret;	
-	int file_found = 0, usb_port;
-	int string;
+	int usb_port;
 	char file[120];
 
 	uint8_t idps0[IDPS_SIZE], idps[IDPS_SIZE];
@@ -1203,14 +1198,9 @@ done:
 
 void swapKernel()
 {
-	int external_cobra = 0, ret;
-	int string;
+	int ret;
 	uint8_t idps0[IDPS_SIZE];
-	CellFsStat statinfo;
 	close_xml_list();
-
-	if (!is_qcfw())
-		return;
 
 	// HEN
 	if(!is_hen())
@@ -1246,7 +1236,7 @@ void swapKernel()
 
 	int targetID = getTargetID(1);
 
-	if(targetID == 0x82 || 1)
+	if(targetID == 0x82)
 	{
 		showMessage("msg_swap_kernel_wait", (char *)XAI_PLUGIN, (char *)TEX_INFO2);
 
@@ -1261,7 +1251,8 @@ void swapKernel()
 		if(lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032322F30322FULL ||      // 2022/02/
 			lv2_peek(CEX_490_OFFSET) == CEX && lv2_peek(0x80000000002FCB58ULL) == 0x323032322F31322FULL || // 2022/12/
 			lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032332F31322FULL ||     // 2023/12/
-			lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032352F30322FULL)       // 2025/02/
+			lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032352F30322FULL ||     // 2025/02/
+			lv2_peek(CEX_OFFSET) == CEX && lv2_peek(0x80000000002FCB68ULL) == 0x323032362F30312FULL)       // 2026/01/
 		{
 			log("CEX detected, swapping to DEX...\n");
 
@@ -1277,7 +1268,8 @@ void swapKernel()
 		}
 		else if(lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032332F30312FULL || // 2023/01/
 				lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032342F30322FULL || // 2024/02/
-				lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032352F30332FULL)   // 2025/03/
+				lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032352F30332FULL || // 2025/03/
+				lv2_peek(DEX_OFFSET) == DEX && lv2_peek(0x800000000031F028ULL) == 0x323032362F30332FULL)   // 2026/03/
 		{
 			log("DEX detected, swapping to CEX...\n");
 
@@ -1304,7 +1296,6 @@ int spoof_with_eid5()
 	uint8_t idps[IDPS_SIZE];
 	uint64_t start_offset = 0x80000000003D0000ULL;
 	uint64_t end_offset = 0x8000000000500000ULL;	
-	wchar_t wchar_string[120];
 	int done = 0;
 
 	// Check if CFW Syscalls are disabled
@@ -1317,7 +1308,7 @@ int spoof_with_eid5()
 	int ret = sys_ss_get_console_id(current_idps);
 
 	if(ret == EPERM)
-		ret = GetIDPS(current_idps);
+		ret = cellSsAimGetDeviceId(current_idps);
 
 	if(ret != CELL_OK)
 	{
@@ -1405,10 +1396,11 @@ int toggle_vsh()
 	mount_dev_blind();
 
 	if((getTargetID(1) == 0x81 && lv2_peek(DEX_OFFSET) == DEX || getTargetID(1) == 0x82 && lv2_peek(DEX_OFFSET) == DEX) && 
-		(lv2_peek(0x800000000031F028ULL) == 0x323032332F30312FULL || //2023/01/
-		lv2_peek(0x800000000031F028ULL) == 0x323032332F30332FULL ||  //2023/03/
-		lv2_peek(0x800000000031F028ULL) == 0x323032342F30322FULL ||  //2024/02/
-		lv2_peek(0x800000000031F028ULL) == 0x323032352F30332FULL))   //2025/03/
+		(lv2_peek(0x800000000031F028ULL) == 0x323032332F30312FULL || // 2023/01/
+		lv2_peek(0x800000000031F028ULL) == 0x323032332F30332FULL ||  // 2023/03/
+		lv2_peek(0x800000000031F028ULL) == 0x323032342F30322FULL ||  // 2024/02/
+		lv2_peek(0x800000000031F028ULL) == 0x323032352F30332FULL ||  // 2025/03/
+		lv2_peek(0x800000000031F028ULL) == 0x323032362F30332FULL))   // 2026/03/
 	{
 		showMessage("msg_toggle_vsh_canceled", (char *)XAI_PLUGIN, (char *)TEX_INFO2);		
 		return 1;
@@ -1473,7 +1465,6 @@ int enable_custom_support(int mode)
 {
 	char file[120], eid0_backup[120];
 	int usb_port, dev_id, ret;
-	int string;
 
 	CellFsStat statinfo;
 
@@ -1793,9 +1784,8 @@ error:
 int disable_custom_support(int mode)
 {
 	char file[120], eid_root_key_file[120];	
-	int usb_found = 0 , usb_port = 0;
+	int usb_port = 0;
 	int dev_id, ret;
-	int string;
 
 	uint64_t start_flash_sector = 0x178;
 	uint64_t device = FLASH_DEVICE_NOR;	

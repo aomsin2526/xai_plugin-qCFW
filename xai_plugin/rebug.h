@@ -39,10 +39,6 @@
 #define VER_SWP							"/dev_blind/vsh/etc/version.txt.swp"
 #define VER_NRM							"/dev_blind/vsh/etc/version.txt.nrm"
 
-#define SYSCONF_SPRX					"/dev_blind/vsh/module/sysconf_plugin.sprx"
-#define SYSCONF_SPRX_CEX				"/dev_blind/vsh/module/sysconf_plugin.sprx.cex"
-#define SYSCONF_SPRX_DEX				"dev_blind/vsh/module/sysconf_plugin.sprx.dex"
-
 #define XMB_PLUGIN_SPRX					"/dev_blind/vsh/module/xmb_plugin.sprx"
 #define XMB_PLUGIN_SPRX_CEX				"/dev_blind/vsh/module/xmb_plugin.sprx.cex"
 #define XMB_PLUGIN_SPRX_DEX				"/dev_blind/vsh/module/xmb_plugin.sprx.dex"

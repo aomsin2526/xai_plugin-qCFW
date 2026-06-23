@@ -23,84 +23,80 @@ int LoadPlugin(char *pluginname, void *handler);
 int read_product_mode_flag(void *data);
 
 // NID Functions prx
-static int (*FindPlugin)(const char *plugin);
-static int (*plugin_GetInterface)(int view,int interface);
-static int (*plugin_SetInterface)(int view, int interface, void *Handler);
-static int (*plugin_SetInterface2)(int view, int interface, void *Handler);
+extern int (*FindPlugin)(const char *plugin);
+extern int (*plugin_GetInterface)(int view,int interface);
+extern int (*plugin_SetInterface)(int view, int interface, void *Handler);
+extern int (*plugin_SetInterface2)(int view, int interface, void *Handler);
 
 // NID Functions cfw_settings
-static int (*getDiscHashKey)(void*);
-static int (*authDisc)();
-static int (*cellFsUtilityMount)(const char *device_name, const char *device_fs, const char *device_path, int r6, int write_prot, int r8, int *r9) = 0;
-static int (*cellSsAimGetDeviceId)(void *buffer) = 0;
-static int (*cellSsAimGetOpenPSID)(void *buffer) = 0;
-static int (*Authenticate_BD_Drive)(int cmd) = 0;
+extern int (*getDiscHashKey)(void*);
+extern int (*authDisc)();
+extern int (*cellFsUtilityMount)(const char *device_name, const char *device_fs, const char *device_path, int r6, int write_prot, int r8, int *r9);
+extern int (*cellSsAimGetDeviceId)(void *buffer);
+extern int (*cellSsAimGetOpenPSID)(void *buffer);
+extern int (*Authenticate_BD_Drive)(int cmd);
 
-static int (*loadModule)(int *fd, char *path, int r5, int r6, int *memorycontainer) = 0;
-static int (*ejectDisc)() = 0;
-static int (*startJob)(void *job, int(*handler1)(), void *param1, int r6, int r7, uint8_t(*handler2)()) = 0;
-static uint8_t *(*getLoadedPlugins)() = 0;
+extern int (*loadModule)(int *fd, char *path, int r5, int r6, int *memorycontainer);
+extern int (*ejectDisc)();
+extern int (*startJob)(void *job, int(*handler1)(), void *param1, int r6, int r7, uint8_t(*handler2)());
+extern uint8_t *(*getLoadedPlugins)();
 
-static int (*cellCryptoPuAesCbcCfb128Encrypt)(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv) = 0;
-static int (*cellCryptoPuAesCbcCfb128Decrypt)(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv) = 0;
-static int (*cellCryptoPuAesEncKeySet)(AES_KEY *aes_key, const unsigned char *user_key, const int bits) = 0;
-static int (*cellCryptoPuAesOmac1Mode)(uint8_t *out, uint8_t *input, uint32_t length, uint8_t *key, uint32_t keybits) = 0;
+extern int (*cellCryptoPuAesCbcCfb128Encrypt)(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv);
+extern int (*cellCryptoPuAesCbcCfb128Decrypt)(void *out, void *in, uint32_t length, void *user_key, int bits, void *iv);
+extern int (*cellCryptoPuAesEncKeySet)(AES_KEY *aes_key, const unsigned char *user_key, const int bits);
+extern int (*cellCryptoPuAesOmac1Mode)(uint8_t *out, uint8_t *input, uint32_t length, uint8_t *key, uint32_t keybits);
 
-static int (*cellCryptoPuSha1Hmac)(uint8_t *hmac_hash, uint8_t *data_in, int32_t data_length, uint8_t *key, int32_t key_length) = 0;
-static int (*cellCryptoPuSha1HmacInit)(uint64_t data[160], uint8_t *key, int32_t key_length) = 0;
-static int (*cellCryptoPuSha1HmacTransform)(uint64_t data[160], uint8_t *data_in, int32_t data_length) = 0;
-static int (*cellCryptoPuSha1HmacFinal)(uint8_t *hmac_hash, uint64_t data[160]) = 0;
-static int (*cellCryptoPuSha1Hash)(uint8_t *out_sha1, uint8_t *in, uint32_t length) = 0;
-static int (*cellCryptoPuEccEcDsaVeri)(uint64_t ret, uint8_t *hash, uint8_t *public_key, uint8_t *curve) = 0;
+extern int (*cellCryptoPuSha1Hmac)(uint8_t *hmac_hash, uint8_t *data_in, int32_t data_length, uint8_t *key, int32_t key_length);
+extern int (*cellCryptoPuSha1HmacInit)(uint64_t data[160], uint8_t *key, int32_t key_length);
+extern int (*cellCryptoPuSha1HmacTransform)(uint64_t data[160], uint8_t *data_in, int32_t data_length);
+extern int (*cellCryptoPuSha1HmacFinal)(uint8_t *hmac_hash, uint64_t data[160]);
+extern int (*cellCryptoPuSha1Hash)(uint8_t *out_sha1, uint8_t *in, uint32_t length);
+extern int (*cellCryptoPuEccEcDsaVeri)(uint64_t ret, uint8_t *hash, uint8_t *public_key, uint8_t *curve);
 
-static int (*update_mgr_read_eprom)(int offset, void *buffer);      
-static int (*update_mgr_write_eprom)(int offset, int value);
-static int (*vshmain_74A54CBF)(int r3) = 0;
-static int (*vshmain_5F5729FB)(int r3) = 0;
+extern int (*update_mgr_read_eprom)(int offset, void *buffer);      
+extern int (*update_mgr_write_eprom)(int offset, int value);
+extern int (*vshmain_74A54CBF)(int r3);
+extern int (*vshmain_5F5729FB)(int r3);
+extern int (*vshmain_25CE539E)(uint64_t *value);
 
-static int (*xBDVDGetInstance)();
+extern int (*xBDVDGetInstance)();
 
-static xsetting_D0261D72_class*(*xSettingRegistryGetInterface)() = 0;
-static xsetting_AF1F161_class*(*xSettingSystemInfoGetInterface)() = 0;
-static xsetting_CC56EB2D_class*(*xUserGetInterface)() = 0;
+extern xsetting_D0261D72_class*(*xSettingRegistryGetInterface)();
+extern xsetting_AF1F161_class*(*xSettingSystemInfoGetInterface)();
+extern xsetting_CC56EB2D_class*(*xUserGetInterface)();
 
-static xsetting_16A8A805_class*(*xSettingBdvdGetInterface)() = 0;
-static xsetting_8B69F85A_class*(*xSettingDateGetInterface)() = 0;
-static int (*_cellRtcGetCurrentTick)(uint64_t *pTick) = 0;
-static int (*_cellRtcSetCurrentTick)(uint64_t *pTick) = 0;
+extern xsetting_16A8A805_class*(*xSettingBdvdGetInterface)();
+extern xsetting_8B69F85A_class*(*xSettingDateGetInterface)();
+extern int (*_cellRtcGetCurrentTick)(uint64_t *pTick);
+extern int (*_cellRtcSetCurrentTick)(uint64_t *pTick);
+extern int (*_cellRtcSetCurrentSecureTick)(const uint64_t *secureTick);
+extern int (*_cellRtcGetCurrentSecureTick)(const uint64_t *secureTick);
+//static int (*_cellRtcGetCurrentClock)() = 0;
 
-static void (*NotifyWithTexture)(int32_t, const char *eventName, int32_t, int32_t *texture, int32_t*, const char*, const char*, float, const wchar_t *text, int32_t, int32_t, int32_t);
-static uint32_t (*FindTexture)(int32_t *texptr, uint32_t plugin, const char *name);
+extern void (*NotifyWithTexture)(int32_t, const char *eventName, int32_t, int32_t *texture, int32_t*, const char*, const char*, float, const wchar_t *text, int32_t, int32_t, int32_t);
+extern uint32_t (*FindTexture)(int32_t *texptr, uint32_t plugin, const char *name);
 
-static void (*_free)(void *);
-static void *(*_malloc)(size_t);
-static void *(*_memalign)(size_t boundary, size_t size_arg);
+extern void (*_free)(void *);
+extern void *(*_malloc)(size_t);
+extern void *(*_memalign)(size_t boundary, size_t size_arg);
 
-static size_t (*wcstombs_)(char *dest, const wchar_t *src, size_t max);
-static uint64_t (*_stoull)(const char *ptr, char **endptr, int base);
+extern size_t (*wcstombs_)(char *dest, const wchar_t *src, size_t max);
+extern uint64_t (*_stoull)(const char *ptr, char **endptr, int base);
 
-static FILE *(*_fopen)(const char *filename, const char *mode);
-static size_t *(*_fread)(void *pointer, size_t size, size_t nmemb, FILE *stream);
-static int (*_fclose)(FILE *stream);
-static int (*_fprintf)(FILE *stream, const char *format, ...);
-static char *(*_ctime)(const time_t *timer);
+extern FILE *(*_fopen)(const char *filename, const char *mode);
+extern size_t *(*_fread)(void *pointer, size_t size, size_t nmemb, FILE *stream);
+extern int (*_fclose)(FILE *stream);
+extern int (*_fprintf)(FILE *stream, const char *format, ...);
+extern char *(*_ctime)(const time_t *timer);
 
-static void (*xRegistrySetValue)(unsigned int handle, unsigned int path, unsigned int value, unsigned int size, int unk) = 0;
-static int (*xRegistryGetValue)(unsigned int a1, unsigned int a2, unsigned int a3, unsigned int a4, unsigned int a5, unsigned int a6) = 0;
-static void (*xGetDefaultInstance)(int a1, int *a2, void *a3, void *a4, void *a5, void *a6) = 0;
+extern void (*xRegistrySetValue)(unsigned int handle, unsigned int path, unsigned int value, unsigned int size, int unk);
+extern int (*xRegistryGetValue)(unsigned int a1, unsigned int a2, unsigned int a3, unsigned int a4, unsigned int a5, unsigned int a6);
+extern void (*xGetDefaultInstance)(int a1, int *a2, void *a3, void *a4, void *a5, void *a6);
 
-static int (*GetString)(int plugin, const char *text);
-static uint32_t (*sceNetCtlGetInfoVsh)(uint32_t size, const char *ip);
+extern int (*GetString)(int plugin, const char *text);
+extern uint32_t (*sceNetCtlGetInfoVsh)(uint32_t size, const char *ip);
 
-static int (*cellFsUtilUmount)(const char *device_path, int r4) = 0;
-
-class xai_plugin_interface_action
-{	
-	public:
-		static void xai_plugin_action(const char *action);
-};
-
-static void *xai_plugin_action_if[3] = { (void*)xai_plugin_interface_action::xai_plugin_action, 0, 0 };
+extern int (*cellFsUtilUmount)(const char *device_path, int r4);
 
 class xai_plugin_interface
 {
@@ -109,14 +105,6 @@ class xai_plugin_interface
 		static int xai_plugin_start(void *view);
 		static int xai_plugin_stop(void);
 		static void xai_plugin_exit(void);
-};
-
-static void *xai_plugin_functions[4] = 
-{
-	(void*)xai_plugin_interface::xai_plugin_init,
-	(void*)xai_plugin_interface::xai_plugin_start,
-	(void*)xai_plugin_interface::xai_plugin_stop,
-	(void*)xai_plugin_interface::xai_plugin_exit
 };
 
 #endif
