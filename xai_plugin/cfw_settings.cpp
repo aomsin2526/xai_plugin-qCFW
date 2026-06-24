@@ -25,7 +25,7 @@
 #include "savegames.h"
 #include "cex2dex.h"
 #include "eeprom.h"
-
+#include "qcfw.h"
 
 extern "C" int _videorec_export_function_video_rec(void);
 extern "C" int _videorec_export_function_klicensee(void);
@@ -2571,6 +2571,8 @@ int service_mode()
 		showMessage("msg_eprom_unknown_flag", (char *)XAI_PLUGIN, (char *)TEX_ERROR);
 		return 1;
 	}
+
+	qcfw_sc_write_fsm_counter(0);
 
 	wait(2);
 	return ret;

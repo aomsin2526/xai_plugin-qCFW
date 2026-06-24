@@ -236,6 +236,11 @@ bool qcfw_sc_read_encdec_tweak_key(uint8_t* outValue) // [32]
 	return true;
 }
 
+bool qcfw_sc_write_fsm_counter(uint8_t value)
+{
+	return update_mgr_write_eprom(0x3004, value) == 0;
+}
+
 void qcfw_dump_hdd_key()
 {
 	if (!qcfw_sc_write_hdd_key_dumper_flag(0x1))

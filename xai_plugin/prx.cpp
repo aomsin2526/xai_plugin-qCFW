@@ -778,11 +778,11 @@ static void plugin_thread(uint64_t arg)
 		install_toolbox();*/
 
 	// Advanced Tools options
-	else if(strcmp(action_thread, "rsod_fix") == 0)
-	{		
-		if(rsod_fix() == true)
-			rebootXMB(SYS_SOFT_REBOOT);
-	}	
+	//else if(strcmp(action_thread, "rsod_fix") == 0)
+	//{		
+	//	if(rsod_fix() == true)
+	//		rebootXMB(SYS_SOFT_REBOOT);
+	//}	
 	else if(strcmp(action_thread, "service_mode") == 0)
 	{
 		if(!service_mode())
@@ -792,10 +792,10 @@ static void plugin_thread(uint64_t arg)
 	//	remarry_bd();	
 	else if(strcmp(action_thread, "check_ros_bank") == 0)			
 		check_ros_bank();	
-	else if(strcmp(action_thread, "check_8th_spe") == 0)			
-		check_8th_spe();	
-	else if(strcmp(action_thread, "toggle_8th_spe") == 0)			
-		toggle_8th_spe();
+	//else if(strcmp(action_thread, "check_8th_spe") == 0)			
+	//	check_8th_spe();	
+	//else if(strcmp(action_thread, "toggle_8th_spe") == 0)			
+	//	toggle_8th_spe();
 	else if(strcmp(action_thread, "patch_prodg") == 0)	
 		Patch_ProDG();
 	//else if(strcmp(action_thread, "enable_dex_support") == 0)	
