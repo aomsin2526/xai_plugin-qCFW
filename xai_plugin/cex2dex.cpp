@@ -1206,6 +1206,9 @@ void swapKernel()
 	if (!is_qcfw())
 		return;
 
+	if (!qcfw_sc_write_dex_spoof_flag(0x0))
+		return;
+
 	// HEN
 	if(!is_hen())
 	{

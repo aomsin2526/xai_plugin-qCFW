@@ -828,16 +828,16 @@ static void plugin_thread(uint64_t arg)
 		dump_lv(LV1);
 	else if(strcmp(action_thread, "dump_ram") == 0)	
 		dump_lv(RAM);
-	else if(strcmp(action_thread, "dump_sysrom") == 0)	
-		dump_sysrom();
+	//else if(strcmp(action_thread, "dump_sysrom") == 0)	
+	//	dump_sysrom();
 	else if(strcmp(action_thread, "dump_eeprom") == 0)	
 		dump_eeprom();
 	else if(strcmp(action_thread, "dump_syscon_log") == 0)	
 		sm_error_log();
 	else if(strcmp(action_thread, "get_token_seed") == 0)	
 		get_token_seed();
-	else if(strcmp(action_thread, "dump_flash") == 0)	
-		dumpFlash();
+	//else if(strcmp(action_thread, "dump_flash") == 0)	
+	//	dumpFlash();
 	else if(strcmp(action_thread, "log_klic") == 0)	
 		log_klic();	
 	else if(strcmp(action_thread, "log_secureid") == 0)	
@@ -961,6 +961,9 @@ static void plugin_thread(uint64_t arg)
 	else if (strcmp(action_thread, "qcfw_save_hdd_key_to_usb") == 0)
 		qcfw_save_hdd_key_to_usb();
 
+	else if (strcmp(action_thread, "qcfw_toggle_nobd_patch") == 0)
+		qcfw_toggle_nobd_patch();
+
 	xai_loaded = 0;
 	__asm volatile("sync");	
 	sys_ppu_thread_exit(0);
@@ -970,6 +973,22 @@ void xai_plugin_interface_action::xai_plugin_action(const char * action)
 {	
 	if(xai_loaded)
 		return; 
+
+	if (strcmp(action, "qcfw_dump_nor_to_usb") == 0)
+	{
+		qcfw_dump_nor_to_usb();
+		return;
+	}
+	else if (strcmp(action, "qcfw_dump_emmc_to_usb_256M") == 0)
+	{
+		qcfw_dump_emmc_to_usb_256M();
+		return;
+	}
+	else if (strcmp(action, "qcfw_dump_emmc_to_usb_12G") == 0)
+	{
+		qcfw_dump_emmc_to_usb_12G();
+		return;
+	}
 
 	xai_loaded = 1;
 	__asm volatile("sync");
