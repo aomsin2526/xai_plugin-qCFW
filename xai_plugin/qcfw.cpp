@@ -899,6 +899,9 @@ bool qcfw_dump_emmc_to_usb_12G()
 
 bool qcfw_toggle_nobd_patch()
 {
+	if (!is_qcfw())
+		return false;
+
 	uint8_t old_value = 0xff;
 	if (!qcfw_sc_read_nobd_toggle_flag(&old_value))
 		return false;
