@@ -785,6 +785,12 @@ bool qcfw_dump_emmc_to_file(uint64_t offset, uint64_t size, const char* filePath
 
 bool qcfw_dump_nor_to_usb()
 {
+	if (!qcfw_is_nor())
+	{
+		PrintString(L"Flash is not NOR!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
 	if (!qcfw_dump_nor_to_file(0, (16 * 1024 * 1024), "/dev_usb000/NOR.bin", (256 * 1024)))
 	{
 		PrintString(L"Failed!", XAI_PLUGIN, TEX_ERROR);
@@ -838,6 +844,12 @@ bool qcfw_emmc_is_complete()
 
 bool qcfw_dump_emmc_to_usb_256M()
 {
+	if (!qcfw_is_emmc())
+	{
+		PrintString(L"Flash is not eMMC!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
 	bool is_complete = qcfw_emmc_is_complete();
 
 	if (!qcfw_dump_emmc_to_file(0, (256 * 1024 * 1024), (is_complete ? "/dev_usb000/eMMC_complete_256M.bin" : "/dev_usb000/eMMC_incomplete_256M.bin"), (256 * 1024)))
@@ -856,6 +868,12 @@ bool qcfw_dump_emmc_to_usb_256M()
 
 bool qcfw_dump_emmc_to_usb_12G()
 {
+	if (!qcfw_is_emmc())
+	{
+		PrintString(L"Flash is not eMMC!", XAI_PLUGIN, TEX_ERROR);
+		return false;
+	}
+
 	bool is_complete = qcfw_emmc_is_complete();
 
 	static const uint64_t dump_size = 13193183232ull;
