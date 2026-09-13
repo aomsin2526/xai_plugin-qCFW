@@ -66,6 +66,32 @@ bool qcfw_sc_write_fsm_counter(uint8_t value)
 	return update_mgr_write_eprom(0x3004, value) == 0;
 }
 
+bool qcfw_sc_write_ros0_crc32(uint32_t value)
+{
+	const uint8_t* p = (const uint8_t*)&value;
+
+	for (uint32_t i = 0; i < 4; ++i)
+	{
+		if (update_mgr_write_eprom((0x3008 + i), p[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+
+bool qcfw_sc_write_ros1_crc32(uint32_t value)
+{
+	const uint8_t* p = (const uint8_t*)&value;
+
+	for (uint32_t i = 0; i < 4; ++i)
+	{
+		if (update_mgr_write_eprom((0x300c + i), p[i]) != 0)
+			return false;
+	}
+
+	return true;
+}
+
 bool qcfw_sc_read_nobd_toggle_flag(uint8_t* outValue)
 {
 	return update_mgr_read_eprom(0x3011, outValue) == 0;
@@ -938,6 +964,111 @@ bool qcfw_toggle_nobd_patch()
 
 		PrintString(L"NoBD patch enabled.\nReboot to apply changes.", XAI_PLUGIN, TEX_SUCCESS);
 	}
+
+	return true;
+}
+
+bool qcfw_calc_crc32_from_nor(uint32_t offset, uint32_t size, uint32_t chunk_size, uint32_t* out_crc32)
+{
+	if (chunk_size == 0)
+		return false;
+
+	uint8_t* chunkBuf = (uint8_t*)_malloc(chunk_size);
+	if (chunkBuf == NULL)
+		return false;
+
+	uint32_t crc32 = 0;
+
+	{
+		uint32_t left = size;
+		uint32_t curNorOffset = offset;
+
+		while (left > 0)
+		{
+			uint32_t processSize = (left > chunk_size) ? chunk_size : left;
+
+			if (!qcfw_nor_read(curNorOffset, chunkBuf, processSize, (256 * 1024)))
+			{
+				_free(chunkBuf);
+				return false;
+			}
+
+			crc32 = qcfw_crc32c(crc32, chunkBuf, processSize);
+
+			curNorOffset += processSize;
+			left -= processSize;
+		}
+	}
+
+	if (out_crc32 != NULL)
+		*out_crc32 = crc32;
+
+	_free(chunkBuf);
+	return true;
+}
+
+bool qcfw_calc_crc32_from_emmc(uint64_t offset, uint64_t size, uint32_t chunk_size, uint32_t* out_crc32)
+{
+	if (chunk_size == 0)
+		return false;
+
+	uint8_t* chunkBuf = (uint8_t*)_malloc(chunk_size);
+	if (chunkBuf == NULL)
+		return false;
+
+	uint32_t crc32 = 0;
+
+	{
+		uint64_t left = size;
+		uint64_t curEmmcOffset = offset;
+
+		while (left > 0)
+		{
+			uint32_t processSize = (left > chunk_size) ? chunk_size : left;
+
+			if (!qcfw_emmc_read(curEmmcOffset, chunkBuf, processSize, (256 * 1024)))
+			{
+				_free(chunkBuf);
+				return false;
+			}
+
+			crc32 = qcfw_crc32c(crc32, chunkBuf, processSize);
+
+			curEmmcOffset += processSize;
+			left -= processSize;
+		}
+	}
+
+	if (out_crc32 != NULL)
+		*out_crc32 = crc32;
+
+	_free(chunkBuf);
+	return true;
+}
+
+bool qcfw_update_ros_crc32()
+{
+	uint32_t ros0_crc32 = 0;
+	uint32_t ros1_crc32 = 0;
+
+	if (qcfw_is_nor())
+	{
+		if (!qcfw_calc_crc32_from_nor(0x0C0000, 0x6FFFF0, (256 * 1024), &ros0_crc32) ||
+			!qcfw_calc_crc32_from_nor(0x7C0000, 0x6FFFF0, (256 * 1024), &ros1_crc32))
+			return false;
+	}
+	else if (qcfw_is_emmc())
+	{
+		if (!qcfw_calc_crc32_from_emmc(0x0C0020, 0x6FFFF0, (256 * 1024), &ros0_crc32) ||
+			!qcfw_calc_crc32_from_emmc(0x7C0010, 0x6FFFF0, (256 * 1024), &ros1_crc32))
+			return false;
+	}
+	else
+		return false;
+
+	if (!qcfw_sc_write_ros0_crc32(ros0_crc32) ||
+		!qcfw_sc_write_ros1_crc32(ros1_crc32))
+		return false;
 
 	return true;
 }

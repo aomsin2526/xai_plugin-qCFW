@@ -19,3 +19,5 @@ extern bool qcfw_dump_emmc_to_usb_256M();
 extern bool qcfw_dump_emmc_to_usb_12G();
 
 extern bool qcfw_toggle_nobd_patch();
+
+extern bool qcfw_update_ros_crc32();

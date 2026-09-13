@@ -875,6 +875,8 @@ static int setFlashKernelData(uint8_t _mode)
 			}
 		}
 
+		qcfw_update_ros_crc32();
+
 		if(ros)
 			return 0;
 		else
