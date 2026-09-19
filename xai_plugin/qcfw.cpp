@@ -72,6 +72,11 @@ bool qcfw_is_emmc()
 	return (qcfw_emmc_get_size() > 0);
 }
 
+bool qcfw_sc_read_shadow_os_bank_indicator(uint8_t* outValue)
+{
+	return update_mgr_read_eprom(0x3001, outValue) == 0;
+}
+
 bool qcfw_sc_read_hdd_key_dumper_flag(uint8_t* outValue)
 {
 	return update_mgr_read_eprom(0x3003, outValue) == 0;
@@ -1069,6 +1074,10 @@ bool qcfw_calc_crc32_from_emmc(uint64_t offset, uint64_t size, uint32_t chunk_si
 
 bool qcfw_update_ros_crc32()
 {
+	uint8_t shadow_os_bank_indicator = 0xff;
+	if (!qcfw_sc_read_shadow_os_bank_indicator(&shadow_os_bank_indicator))
+		return false;
+
 	uint32_t ros0_crc32 = 0;
 	uint32_t ros1_crc32 = 0;
 
@@ -1087,8 +1096,17 @@ bool qcfw_update_ros_crc32()
 	else
 		return false;
 
-	if (!qcfw_sc_write_ros0_crc32(ros0_crc32) ||
-		!qcfw_sc_write_ros1_crc32(ros1_crc32))
+	if (shadow_os_bank_indicator == 0x1)
+	{
+		if (!qcfw_sc_write_ros0_crc32(ros0_crc32))
+			return false;
+	}
+	else if (shadow_os_bank_indicator == 0x2)
+	{
+		if (!qcfw_sc_write_ros1_crc32(ros1_crc32))
+			return false;
+	}
+	else
 		return false;
 
 	return true;
